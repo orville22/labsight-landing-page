@@ -1,0 +1,124 @@
+export const articles = [
+  {
+    slug: 'new-reagent-lot-verification-walkthrough',
+    title: 'New Reagent Lot Verification - A Complete Walkthrough',
+    category: 'QC Verification',
+    time: '~12 min',
+    status: 'Featured draft',
+    summary:
+      'Why lot verification matters, how to design the comparison, how to interpret APS bias, what to do when a lot fails, and how to document the outcome.',
+    body: [
+      'This is not a real article yet; this placeholder marks the reagent lot verification guide that will be researched and written first.',
+      'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer vitae nibh id mauris facilisis volutpat. Suspendisse potenti. Donec lacinia, justo non tincidunt fermentum, erat sem congue libero, vitae porttitor justo turpis vitae ipsum.',
+      'Praesent gravida neque nec ante viverra, non cursus mi consequat. Sed at lectus sit amet nulla tincidunt feugiat. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Integer in sapien vitae justo luctus tincidunt.',
+      'Morbi bibendum risus id magna feugiat, sed viverra nulla porta. Aliquam erat volutpat. Nunc pulvinar, lacus non cursus pretium, neque massa venenatis augue, vel viverra libero magna sed urna.',
+      'Curabitur finibus mauris non lacus sagittis, vitae mattis tortor ultrices. Aenean volutpat mi vel ante aliquam, a gravida nulla dictum. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.',
+      'Sed consequat lectus ac eros pulvinar, eu pulvinar velit dapibus. Pellentesque id tellus vel ligula luctus bibendum. Etiam id vestibulum nisl, vitae volutpat turpis. Nunc et arcu id nulla sagittis feugiat.',
+      'Fusce interdum sem sed mi rhoncus, eget tempor lacus rutrum. Donec non justo sit amet arcu porttitor facilisis. Integer facilisis neque quis quam fermentum, nec suscipit neque bibendum.',
+      'Aliquam vitae purus nec ipsum venenatis feugiat. Vivamus interdum lacus ut ipsum pharetra, in porttitor neque gravida. Donec gravida, justo sit amet faucibus iaculis, sapien massa tempus justo, a gravida risus ante et neque.',
+    ],
+  },
+  {
+    slug: 'understanding-rcpaqap-analytical-performance-specifications',
+    title: 'Understanding RCPAQAP Analytical Performance Specifications',
+    category: 'Acceptance Criteria',
+    time: '~8 min',
+    status: 'Placeholder',
+    summary:
+      'A plain-language explanation of APS limits, basis categories, and how to apply RCPAQAP criteria in routine laboratory decisions.',
+    body: [
+      'This is not a real article yet; this placeholder marks the RCPAQAP APS guide that will be written after proper research.',
+      'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis fermentum felis vel nibh tincidunt, a tincidunt lacus posuere. Integer sit amet magna vitae ipsum feugiat luctus.',
+      'Vivamus ac libero eget est egestas vulputate. Cras tincidunt nunc ut nibh dictum, vel suscipit purus imperdiet. Nulla vel massa in mi molestie consequat.',
+      'Mauris sodales justo non arcu luctus, vitae pulvinar ante faucibus. In nec tellus sed est viverra accumsan. Vestibulum non lacus pulvinar, pellentesque lectus at, venenatis tortor.',
+      'Integer volutpat tempor sem, non fermentum turpis pharetra sed. Proin sed tortor blandit, feugiat eros eget, faucibus urna. Aenean iaculis ipsum vel neque egestas, vel luctus urna convallis.',
+      'Donec quis urna non neque volutpat tempus. Duis malesuada velit non velit accumsan, in eleifend ante condimentum. Sed quis sapien quis libero finibus elementum.',
+      'Nulla facilisi. Sed gravida eros in est feugiat, vel porttitor sapien pretium. Aliquam facilisis nisi sed leo laoreet, non pulvinar mi posuere.',
+    ],
+  },
+  {
+    slug: 'westgard-rules-explained',
+    title: 'Westgard Rules Explained - Which Rules, When, and Why',
+    category: 'QC Rules',
+    time: '~10 min',
+    status: 'Placeholder',
+    summary:
+      'How common Westgard rules detect random and systematic error, and how to choose a rule set that fits the clinical risk of an assay.',
+    body: [
+      'This is not a real article yet; this placeholder marks the Westgard rules guide that will be written after proper research.',
+      'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non metus sed turpis suscipit facilisis. Donec porta justo non turpis sodales, at faucibus justo dignissim.',
+      'Maecenas luctus neque eu velit luctus, vitae faucibus ante convallis. Sed feugiat, mi in efficitur dictum, risus neque facilisis mi, id feugiat lorem ligula nec neque.',
+      'Vestibulum sed tellus a lectus aliquet pretium. Proin blandit turpis non metus iaculis, a bibendum ipsum luctus. Integer blandit tortor in turpis tempus, non cursus felis porttitor.',
+      'Aenean euismod purus vitae odio hendrerit, et gravida mi dapibus. Nulla consequat risus non dolor efficitur, et pulvinar dolor luctus. Praesent mattis massa nec ante lacinia faucibus.',
+      'Nam faucibus turpis ut eros mattis, sed pharetra nisl efficitur. Sed bibendum mi ac purus feugiat, ut accumsan neque convallis. Curabitur vitae augue eu felis efficitur pharetra.',
+      'Pellentesque nec tortor feugiat, hendrerit nisl eget, sollicitudin nibh. Morbi sed magna vitae lacus cursus tristique. Suspendisse potenti.',
+    ],
+  },
+  {
+    slug: 'qc-target-re-establishment-after-lot-change',
+    title: 'QC Target Re-establishment After a Lot Change',
+    category: 'QC Targets',
+    time: '~6 min',
+    status: 'Placeholder',
+    summary:
+      'Why 5 runs can verify a lot but cannot establish new targets, how to accumulate 20 data points, and how to document the transition.',
+    body: [
+      'This is not a real article yet; this placeholder marks the QC target re-establishment guide that will be written after proper research.',
+      'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam sit amet mi a magna molestie interdum. Proin malesuada quam a sem suscipit, sed dictum eros congue.',
+      'Ut facilisis luctus risus, id sagittis urna luctus sed. Nulla commodo cursus urna, non gravida velit facilisis a. Vestibulum sit amet hendrerit sem.',
+      'Proin vel dui id lacus pretium tempus. Integer a dolor sed eros gravida commodo. Vestibulum ultrices lectus vitae eros faucibus, a tempor augue commodo.',
+      'Donec volutpat lectus vitae nisi finibus, ac vulputate elit suscipit. Duis tincidunt purus id mauris tincidunt, vitae maximus eros scelerisque. Sed vitae lorem ac arcu mattis mattis.',
+      'Curabitur maximus nulla at odio consequat, non vehicula magna hendrerit. Nam gravida eros in fermentum porttitor. Integer venenatis est vitae massa rhoncus placerat.',
+      'Etiam mattis quam a sem efficitur pretium. Integer interdum nisi vel ex finibus, in cursus massa vulputate. Aliquam euismod metus ut orci dictum, vel mattis mauris pretium.',
+    ],
+  },
+  {
+    slug: 'grubbs-test-for-outliers',
+    title: 'Grubbs Test for Outliers - When to Use It and When Not To',
+    category: 'Statistics',
+    time: '~7 min',
+    status: 'Placeholder',
+    summary:
+      'The statistical logic behind outlier detection in small datasets, what exclusion does and does not mean, and how to document judgement.',
+    body: [
+      'This is not a real article yet; this placeholder marks the Grubbs test guide that will be written after proper research.',
+      'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer varius sapien et luctus luctus. Pellentesque a erat in lorem ullamcorper tempor.',
+      'Suspendisse ultricies tortor ut tortor blandit, sit amet aliquet lectus tempor. Vivamus in neque sed arcu luctus suscipit non at nulla.',
+      'Donec molestie ipsum non lorem efficitur, id posuere lacus aliquam. Nam eget ligula sed mi ullamcorper tincidunt. Suspendisse porttitor augue at nunc pulvinar, ac facilisis magna dignissim.',
+      'In vulputate neque nec leo laoreet, id consequat sapien tincidunt. Nulla porttitor nibh sed tortor sollicitudin, id fringilla metus tempor. Maecenas aliquam ante in enim cursus, non lacinia dolor luctus.',
+      'Pellentesque quis dolor sit amet sem feugiat dictum. Curabitur vestibulum justo vitae lorem facilisis, sed cursus mauris iaculis. Donec sed risus et justo cursus aliquet.',
+      'Cras ut libero quis mauris placerat semper. Nunc eget nisi at sapien sollicitudin mattis. Morbi euismod mauris ut cursus tempor.',
+    ],
+  },
+  {
+    slug: 'total-allowable-error-imprecision-bias',
+    title: "Total Allowable Error, Imprecision, and Bias - What's the Difference?",
+    category: 'Analytical Quality',
+    time: '~9 min',
+    status: 'Placeholder',
+    summary:
+      'A practical explanation of analytical performance hierarchy, biological variation goals, APS limits, and everyday QC decisions.',
+    body: [
+      'This is not a real article yet; this placeholder marks the total allowable error, imprecision, and bias guide that will be written after proper research.',
+      'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum facilisis ipsum non ante sollicitudin, vitae pretium mi hendrerit.',
+      'Donec porttitor luctus orci, in interdum neque porttitor et. Integer faucibus mi in nunc molestie, sit amet finibus elit imperdiet.',
+      'Integer finibus orci sed tellus tempor, a aliquam eros luctus. Vivamus efficitur velit eget lectus interdum, in feugiat magna luctus. Praesent convallis massa in turpis porttitor, sit amet feugiat turpis finibus.',
+      'Curabitur in erat ac lacus viverra venenatis. Aenean tincidunt nulla quis lacus placerat, sed fermentum odio varius. Nunc malesuada ipsum eget ipsum vehicula, sit amet molestie nisi dictum.',
+      'Praesent ac justo sit amet sapien luctus lacinia. Fusce feugiat quam nec nibh feugiat, quis luctus velit pretium. Sed imperdiet enim id tellus semper, nec vulputate arcu faucibus.',
+      'Aliquam et tellus eget purus eleifend aliquam. Phasellus maximus eros vel mi tincidunt, nec hendrerit massa luctus. Donec nec justo non elit volutpat luctus.',
+    ],
+  },
+];
+
+export const topics = [
+  'QC verification',
+  'Reagent lot changes',
+  'Westgard rules',
+  'RCPAQAP APS',
+  'Biological variation',
+  'Audit documentation',
+];
+
+export function getArticleBySlug(slug) {
+  return articles.find((article) => article.slug === slug);
+}

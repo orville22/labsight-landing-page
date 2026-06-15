@@ -1,348 +1,371 @@
-import Image from "next/image";
-
-const metrics = [
-  "Lightweight & fast",
-  "Audit-ready from day one",
-  "Zero learning curve for staff"
+const standards = [
+  'RCPAQAP APS',
+  'CLSI EP26-A',
+  'Westgard QC Principles',
+  'Biological Variation (Ricos)',
 ];
 
-const heroCards = [
+const tools = [
   {
-    tag: "LabSight QMS",
-    title: "Quality meets velocity",
+    title: 'Reagent Lot Verification Calculator',
     description:
-      "QC oversight without spreadsheets or patchwork tools. Trend, investigate, and act with ISO 15189-aligned workflows that teams actually use.",
-    accent: "accent"
+      'Run 5 repeats across 3 QC levels, check bias against RCPAQAP APS limits, detect outliers with the Grubbs test, and generate a printable verification report with auto-generated investigation comments.',
+    action: 'Launch Tool',
+    href: '/tools/rgtlotverifierv1-2.html',
+    tags: ['QC', 'Lot Verification', 'RCPAQAP APS', 'Grubbs Test'],
   },
   {
-    tag: "SpeciTrak",
-    title: "Send-out tracking without chaos",
+    title: 'Westgard Rules QC Checker',
     description:
-      "The logistics layer between Kestral LIS and your couriers. Every referred-out sample is traceable, time-stamped, and accountable—no more email chase-ups.",
-    accent: "accent-2"
-  }
+      'Enter your QC data and get an instant Westgard multi-rule analysis with a Levey-Jennings chart and rule violation commentary.',
+    action: 'Notify me',
+    href: '#waitlist',
+    tags: ['QC', 'Westgard', 'Levey-Jennings'],
+    soon: true,
+  },
+  {
+    title: 'Analytical Measurement Range (AMR) Validator',
+    description:
+      'Document linearity verification, calculate recovery, and generate an AMR report ready for accreditation review.',
+    action: 'Notify me',
+    href: '#waitlist',
+    tags: ['Method Verification', 'Linearity', 'CLSI EP06'],
+    soon: true,
+  },
+  {
+    title: 'Biological Variation Goals Reference',
+    description:
+      'Look up Ricos desirable imprecision, bias, and total error goals for over 300 analytes alongside RCPAQAP APS limits for direct comparison.',
+    action: 'Notify me',
+    href: '#waitlist',
+    tags: ['Biological Variation', 'APS', 'Total Allowable Error'],
+    soon: true,
+  },
 ];
 
-const services = [
+const guides = [
   {
-    tag: "LabSight QMS",
-    title: "Quality Management System",
+    title: 'New Reagent Lot Verification - A Complete Walkthrough',
     description:
-      "QC made simple, smart, and compliant. Monitor, investigate, and improve analytical performance without spreadsheets or patchwork tools.",
-    accent: "accent",
-    features: [
-      {
-        title: "QC grid dashboard",
-        copy: "Real-time analyte overview across platforms with clear trendlines."
-      },
-      {
-        title: "Trend analysis",
-        copy: "Levey-Jennings charts, Westgard rule detection, and intelligent alerts."
-      },
-      {
-        title: "Review & action",
-        copy: "Document issues, track resolutions, and stay audit-ready with ISO 15189-aligned workflows."
-      }
-    ]
+      'Why it matters, how to design the verification, how to interpret bias against APS limits, what to do when a lot fails, and how to document it for accreditation.',
+    time: '~12 min',
+    href: '/blog/new-reagent-lot-verification-walkthrough',
   },
   {
-    tag: "SpeciTrak",
-    title: "End-to-end send-out tracking",
+    title: 'Understanding the RCPAQAP Analytical Performance Specifications',
     description:
-      "SpeciTrak overlays the logistics layer between your Kestral LIS and the physical courier process—no LIS replacement required. Every referred-out sample is time-stamped, accountable, and visible from pickup to final report.",
-    accent: "accent-2",
-    features: [
-      {
-        title: "Sample registration & barcodes",
-        copy: "End-to-end traceability, including BOR handling and batch tracking."
-      },
-      {
-        title: "Courier mobile app",
-        copy: "Status updates at each handover; “where is my sample?” answered instantly."
-      },
-      {
-        title: "TAT analytics",
-        copy: "Turnaround-time monitoring, notifications, exceptions, and full audit trail for accreditation."
-      }
-    ]
+      'A plain-language explanation of how APS limits are structured, what the basis categories mean, and how to use them as acceptance criteria.',
+    time: '~8 min',
+    href: '/blog/understanding-rcpaqap-analytical-performance-specifications',
   },
   {
-    tag: "Inventory App (name TBD)",
-    title: "Smart reagent & supply management",
+    title: 'Westgard Rules Explained - Which Rules, When, and Why',
     description:
-      "Lightweight, accurate, and fast. Eliminate stockouts, guessing, and manual tallying with a zero-learning-curve workflow.",
-    accent: "accent",
-    features: [
-      {
-        title: "Real-time stock levels",
-        copy: "Scan-to-use at fridges and analyzers with future analyzer/middleware integrations."
-      },
-      {
-        title: "Expiry & lot tracking",
-        copy: "Lot numbers, expirations, and certificates tied to runs for faster QC review."
-      },
-      {
-        title: "Usage analytics",
-        copy: "Predict consumption based on actual workload with multi-lab architecture to keep facilities separate and secure."
-      }
-    ]
-  }
+      'A practical guide to the 1-2s, 1-3s, 2-2s, R-4s, 4-1s, and 10x rules and how each detects a different type of analytical error.',
+    time: '~10 min',
+    href: '/blog/westgard-rules-explained',
+  },
+  {
+    title: 'QC Target Re-establishment After a Lot Change',
+    description:
+      "Why 5 runs isn't enough to set new targets, how to accumulate 20 data points correctly, and when to formally update your mean and SD.",
+    time: '~6 min',
+    href: '/blog/qc-target-re-establishment-after-lot-change',
+  },
+  {
+    title: 'Grubbs Test for Outliers - When to Use It and When Not To',
+    description:
+      "How to apply the Grubbs test correctly, what the rules around exclusion are, and why you can't remove a value just because it fails.",
+    time: '~7 min',
+    href: '/blog/grubbs-test-for-outliers',
+  },
+  {
+    title: "Total Allowable Error, Imprecision, and Bias - What's the Difference?",
+    description:
+      'A practical explanation of the analytical performance hierarchy and how it connects to everyday QC decisions.',
+    time: '~9 min',
+    href: '/blog/total-allowable-error-imprecision-bias',
+  },
 ];
 
-const why = [
-  {
-    title: "Built by a medical scientist",
-    copy: "15+ years of lab experience baked into workflows that understand QC pain points and accreditation pressure."
-  },
-  {
-    title: "Lightweight and fast",
-    copy: "No corporate-level complexity—just what small-to-medium labs need to move quickly."
-  },
-  {
-    title: "Secure and scalable",
-    copy: "Cloud-hosted, role-based controls, and audit trails that work whether you have 5 users or 500."
-  },
-  {
-    title: "Designed for adoption",
-    copy: "Minimal clicks, clear screens, and mobile-friendly layouts your staff will actually use."
-  },
-  {
-    title: "Future-ready",
-    copy: "AI-assisted QC intelligence, analyzer-linked inventory deductions, and automated compliance on the roadmap."
-  },
-  {
-    title: "One ecosystem",
-    copy: "Connected signals across QC, send-outs, and inventory so operations stay in sync."
-  }
+const labOpsFeatures = [
+  ['Current Issues Board', 'Create, filter, claim, and update operational items by status, category, severity, analyser, and ownership.'],
+  ['Timeline-based Operational Memory', 'Keep troubleshooting notes, handover context, status changes, and ownership history attached to the issue instead of scattered across chats and notebooks.'],
+  ['Analyser-focused Dashboard', 'See database-backed summary cards and analyser operations context so the team knows what needs attention before the next handover.'],
+  ['Shared Whiteboard', 'Capture short-lived bench context, reminders, and team observations in one visible place during the working day.'],
+  ['Low-friction Issue Creation', 'Quick-create buttons and a simple entry form make it easy to record problems while the details are still fresh.'],
+  ['Role-aware Review Flow', 'User, Senior, and Admin roles support practical accountability now, with audit logs, reminders, and deeper permissions planned for later phases.'],
 ];
 
-const vision = [
-  {
-    title: "One ecosystem, one login",
-    copy: "A single, reliable place for all lab operations: QC, send-outs, and inventory moving in sync."
-  },
-  {
-    title: "Practical for everyday teams",
-    copy: "Designed for real laboratories to stay compliant, efficient, and confident—without enterprise bloat."
-  }
+const audiences = [
+  ['Medical Scientists & Analysts', "You're the one running the verifications, writing the SOPs, and answering the auditor's questions. LabSight gives you tools and reference material to do that faster and with more confidence."],
+  ['Senior Scientists & QC Leads', "You're accountable for the quality system. LabSight gives you standardised workflows, clear documentation, and visibility without chasing spreadsheets."],
+  ['Laboratory Managers & Pathologists', "You need to know the lab's QC is defensible without being involved in every decision. LabSight's sign-off workflows and audit trails give you assurance without micromanagement."],
 ];
 
-const buttonPrimary =
-  "inline-flex items-center justify-center gap-2 rounded-full border border-[var(--border)] bg-gradient-to-br from-[#7ab7ff40] to-[#6af0c930] px-4 py-3 text-[var(--text)] font-semibold shadow-[var(--glow)] transition hover:-translate-y-0.5 hover:border-white/20 hover:shadow-[0_18px_60px_rgba(0,0,0,0.25),var(--glow)]";
+const pillars = [
+  ['Free tools', 'Calculators and checkers scientists can use now for real bench problems, starting with reagent lot verification.'],
+  ['Practical resources', 'Short, standards-aware guides that explain how to apply QC and verification concepts at work.'],
+  ['LabOps in development', 'An operational memory workspace for current issues, handover, troubleshooting, and analyser context.'],
+];
 
-const buttonSecondary =
-  "inline-flex items-center justify-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-3 text-[var(--text)] font-semibold transition hover:-translate-y-0.5 hover:border-white/30";
+const approach = [
+  ['Grounded in real standards', 'Every tool and guide references the actual standards laboratory scientists work to: RCPAQAP APS, CLSI guidelines, and biological variation goals.'],
+  ['Built by people who understand laboratories', "LabSight isn't a generic SaaS product that found its way into diagnostics. It is designed around clinical laboratory workflow from the bench to the audit."],
+  ['Free where it matters', 'The knowledge and tools that help individual scientists do their jobs better will always be free on LabSight. LabOps is where we build a business.'],
+];
 
 export default function Page() {
   return (
-    <div className="relative isolate">
-      <div className="pointer-events-none absolute -left-24 -top-24 h-80 w-80 rounded-full bg-[radial-gradient(circle,rgba(122,183,255,0.22),transparent_70%)] blur-3xl" />
-      <div className="pointer-events-none absolute -right-16 -bottom-24 h-80 w-80 rounded-full bg-[radial-gradient(circle,rgba(106,240,201,0.2),transparent_70%)] blur-3xl" />
-
-      <header className="sticky top-0 z-20 border-b border-[var(--border)] bg-[rgba(8,13,28,0.85)] backdrop-blur-md">
-        <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-5 py-4">
-          <div className="flex items-center gap-3 text-sm font-semibold tracking-tight text-[var(--text)]">
-            <Image
-              src="/labsight_logo.svg"
-              alt="LabSight logo"
-              width={200}
-              height={200}
-              className="h-10 w-auto brightness-110 contrast-110"
-              priority
-            />
-            <span className="hidden sm:inline">LabSight</span>
-          </div>
-          <nav className="hidden md:block">
-            <ul className="flex items-center gap-4 text-sm text-[var(--muted)]">
-              <li>
-                <a className="rounded-lg px-2.5 py-2 transition hover:bg-white/5 hover:text-[var(--text)]" href="#services">
-                  Platform
-                </a>
-              </li>
-              <li>
-                <a className="rounded-lg px-2.5 py-2 transition hover:bg-white/5 hover:text-[var(--text)]" href="#why">
-                  Why LabSight
-                </a>
-              </li>
-              <li>
-                <a className="rounded-lg px-2.5 py-2 transition hover:bg-white/5 hover:text-[var(--text)]" href="#cta">
-                  Contact
-                </a>
-              </li>
-            </ul>
-          </nav>
-          <a className={buttonPrimary} href="#cta">
-            Request a demo
+    <div className="site-shell">
+      <header className="site-header">
+        <div className="site-nav">
+          <a className="brand" href="#top" aria-label="LabSight home">
+            <img className="brand-logo" src="/labsight_logo.svg" alt="LabSight logo" />
+            <span>LabSight</span>
           </a>
+          <nav className="nav-links" aria-label="Primary navigation">
+            <a href="#free-tools">Free Tools</a>
+            <a href="/blog">Blog</a>
+            <a href="#labops">LabOps</a>
+            <a href="#audience">Audience</a>
+          </nav>
+          <a className="btn btn-small" href="#waitlist">Join Waitlist</a>
         </div>
       </header>
 
-      <main className="relative mx-auto max-w-5xl px-5 pb-20 pt-12">
-        <section className="grid items-center gap-8 md:grid-cols-[1.1fr,0.9fr]">
-          <div className="space-y-4">
-            <div className="inline-flex items-center gap-3 rounded-full border border-[var(--border)] bg-white/5 px-4 py-2 text-sm text-[var(--muted)]">
-              <span>Built by a medical scientist</span>
-              <span className="flex items-center gap-2 text-[var(--text)]">
-                <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M3 9l3 3 7-7" />
-                </svg>
-                Designed for real laboratories
-              </span>
-            </div>
-            <h1 className="text-4xl font-semibold leading-[1.05] tracking-tight sm:text-5xl">
-              LabSight Ecosystem — the modern pathology lab platform.
-            </h1>
-            <p className="text-[var(--muted)] leading-relaxed">
-              Built by a Medical Scientist. Engineered for Every Lab. LabSight is a unified digital ecosystem designed to streamline quality management,
-              sample logistics, and inventory control across laboratories of all sizes—from single-site teams to enterprise-scale, multi-department networks.
-              Whether your lab processes hundreds of samples a day or hundreds of thousands, LabSight provides the clarity, tracking, and automation needed to
-              ensure accuracy, compliance, and operational excellence.
+      <main id="top">
+        <section className="hero resource-hero">
+          <div className="hero-copy">
+            <p className="eyebrow">For laboratory scientists and QC professionals</p>
+            <h1>Practical tools for laboratory scientists.</h1>
+            <p className="hero-subtitle">
+              LabSight builds software for the real operational work of the lab:
+              QC, reagent lot changes, troubleshooting, handover, and
+              documentation. Our full LabOps platform is still in development,
+              but you can use our free tools and resources today.
             </p>
-            <div className="flex flex-wrap gap-3">
-              <a className={buttonPrimary} href="#cta">
-                Book a walkthrough
-              </a>
-              <a className={buttonSecondary} href="#services">
-                Explore the suite
-              </a>
+            <div className="hero-actions">
+              <a className="btn" href="#free-tools">Explore Free Resources</a>
+              <a className="btn secondary" href="#waitlist">Join the LabOps Waitlist</a>
             </div>
-            <div className="mt-4 flex flex-wrap gap-3">
-              {metrics.map((metric) => (
-                <div
-                  key={metric}
-                  className="inline-flex items-center gap-2 rounded-2xl border border-[var(--border)] bg-white/5 px-3.5 py-2.5 text-sm text-[var(--muted)]"
-                >
-                  {metric}
-                </div>
-              ))}
-            </div>
+            <p className="supporting-line">
+              Built by scientists who understand what happens at the bench.
+            </p>
           </div>
-
-          <div className="glass mt-2 space-y-4 bg-[linear-gradient(180deg,var(--card),var(--panel))] p-5">
-            <div className="relative z-10 grid gap-4">
-              {heroCards.map((card, idx) => (
-                <div
-                  key={card.title}
-                  className={`relative rounded-[18px] border border-[var(--border)] bg-[radial-gradient(circle_at_80%_10%,rgba(122,183,255,0.2),transparent_40%),var(--card)] p-4 transition hover:-translate-y-1 hover:border-white/20 ${
-                    idx === 1 ? "bg-[radial-gradient(circle_at_20%_20%,rgba(106,240,201,0.26),transparent_50%),#0c1426]" : ""
-                  }`}
-                >
-                  <div
-                    className={`mb-2 inline-flex rounded-full border px-3 py-1 text-sm font-semibold ${
-                      card.accent === "accent-2"
-                        ? "border-[rgba(122,183,255,0.35)] bg-[rgba(122,183,255,0.14)] text-[var(--accent-2)]"
-                        : "border-[rgba(106,240,201,0.35)] bg-[rgba(106,240,201,0.12)] text-[var(--accent)]"
-                    }`}
-                  >
-                    {card.tag}
-                  </div>
-                  <h3 className="text-lg font-semibold">{card.title}</h3>
-                  <p className="text-sm text-[var(--muted)] leading-relaxed">{card.description}</p>
-                  <div className="mt-3 flex items-center gap-2 text-sm font-semibold text-[var(--text)]">
-                    <span
-                      className="inline-block h-2 w-2 rounded-full"
-                      style={{ background: card.accent === "accent-2" ? "var(--accent-2)" : "var(--accent)" }}
-                    />
-                    {idx === 0 ? "Real-time deviation capture" : "TAT monitoring & exceptions"}
-                  </div>
-                </div>
-              ))}
-            </div>
+          <div className="hero-panel">
+            <div className="panel-label">Available now</div>
+            <h2>Reagent Lot Verification Calculator</h2>
+            <p>
+              Compare old and new reagent lots, check APS bias, detect outliers,
+              and generate an audit-ready verification report.
+            </p>
+            <a className="btn secondary" href="/tools/rgtlotverifierv1-2.html">Launch Tool</a>
           </div>
         </section>
 
-        <section id="services" className="mt-16 space-y-4">
-          <div className="flex flex-wrap items-baseline justify-between gap-3">
-            <h2 className="text-2xl font-semibold">The LabSight ecosystem</h2>
-            <span className="text-sm text-[var(--muted)]">
-              One suite built for small-to-medium pathology labs that want clarity without the complexity.
-            </span>
+        <section className="trust-bar" aria-label="Standards references">
+          <p>Built on</p>
+          <div>
+            {standards.map((item) => <span key={item}>{item}</span>)}
           </div>
+        </section>
 
-          <div className="grid gap-4 md:grid-cols-3">
-            {services.map((service) => (
-              <div key={service.title} className="rounded-[18px] border border-[var(--border)] bg-[radial-gradient(circle_at_80%_10%,rgba(122,183,255,0.2),transparent_40%),var(--card)] p-5">
-                <div
-                  className={`mb-3 inline-flex rounded-full border px-3 py-1 text-sm font-semibold ${
-                    service.accent === "accent-2"
-                      ? "border-[rgba(122,183,255,0.35)] bg-[rgba(122,183,255,0.14)] text-[var(--accent-2)]"
-                      : "border-[rgba(106,240,201,0.35)] bg-[rgba(106,240,201,0.12)] text-[var(--accent)]"
-                  }`}
-                >
-                  {service.tag}
-                </div>
-                <h3 className="text-xl font-semibold">{service.title}</h3>
-                <p className="mt-2 text-[var(--muted)] leading-relaxed">{service.description}</p>
-                <div className="mt-4 grid gap-3">
-                  {service.features.map((feature) => (
-                    <div key={feature.title} className="rounded-[14px] border border-[var(--border)] bg-white/5 p-3.5">
-                      <h4 className="text-base font-semibold">{feature.title}</h4>
-                      <p className="text-[var(--muted)] text-sm leading-relaxed">{feature.copy}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
+        <section className="section about-section" id="about">
+          <p className="section-label">About</p>
+          <div className="split">
+            <h2>LabSight builds useful lab software, starting with the problems scientists face every day.</h2>
+            <div className="body-copy">
+              <p>
+                We are a lab software company building tools for scientists who
+                run QC, investigate analyser issues, manage handover, document
+                lot changes, and keep quality work defensible.
+              </p>
+              <p>
+                The larger product vision is still in development. Rather than
+                wait until everything is finished, we are publishing free tools
+                and practical resources that provide value now.
+              </p>
+              <p>
+                Everything here is clinically grounded, accreditation-aware, and
+                written for people who understand the bench, not generic
+                administrators.
+              </p>
+            </div>
+          </div>
+          <div className="three-grid pillar-grid">
+            {pillars.map(([title, copy]) => (
+              <article className="resource-card" key={title}>
+                <h3>{title}</h3>
+                <p>{copy}</p>
+              </article>
             ))}
           </div>
         </section>
 
-        <section id="why" className="mt-16 space-y-4">
-          <h2 className="text-2xl font-semibold">Why labs choose LabSight</h2>
-          <div className="grid gap-3 md:grid-cols-3">
-            {why.map((item) => (
-              <div key={item.title} className="rounded-[18px] border border-[var(--border)] bg-white/5 p-4">
-                <h4 className="text-lg font-semibold">{item.title}</h4>
-                <p className="text-[var(--muted)] text-sm leading-relaxed">{item.copy}</p>
-              </div>
+        <section className="section" id="free-tools">
+          <p className="section-label">Free Tools</p>
+          <div className="section-heading">
+            <h2>Start using these today. No signup needed.</h2>
+            <p>
+              Free resources are not a side project. They are how we make
+              LabSight useful while the larger products are still being built.
+            </p>
+          </div>
+          <div className="tool-grid">
+            {tools.map((tool) => (
+              <article className={`resource-card ${tool.soon ? 'muted-card' : 'featured-card'}`} key={tool.title}>
+                {tool.soon && <span className="status-pill">Coming soon</span>}
+                <h3>{tool.title}</h3>
+                <p>{tool.description}</p>
+                <div className="tag-list">
+                  {tool.tags.map((tag) => <span key={tag}>{tag}</span>)}
+                </div>
+                <a className={tool.soon ? 'text-link' : 'btn card-btn'} href={tool.href}>
+                  {tool.action} →
+                </a>
+              </article>
             ))}
           </div>
         </section>
 
-        <section id="vision" className="mt-14 space-y-4">
-          <h2 className="text-2xl font-semibold">The LabSight vision</h2>
-          <div className="grid gap-3 md:grid-cols-2">
-            {vision.map((item) => (
-              <div key={item.title} className="rounded-[18px] border border-[var(--border)] bg-white/5 p-4">
-                <h4 className="text-lg font-semibold">{item.title}</h4>
-                <p className="text-[var(--muted)] text-sm leading-relaxed">{item.copy}</p>
-              </div>
+        <section className="section" id="guides">
+          <p className="section-label">Guides</p>
+          <div className="section-heading">
+            <h2>Practical knowledge, not textbook theory.</h2>
+            <p>
+              Written for scientists who need to apply this at work, not pass an
+              exam.
+            </p>
+          </div>
+          <div className="guide-grid">
+            {guides.map((guide) => (
+              <article className="resource-card guide-card" key={guide.title}>
+                <span className="reading-time">Reading time: {guide.time}</span>
+                <h3>{guide.title}</h3>
+                <p>{guide.description}</p>
+                <a className="text-link" href={guide.href}>Read article →</a>
+              </article>
             ))}
           </div>
         </section>
 
-        <section id="cta" className="mt-16 rounded-3xl border border-[rgba(122,183,255,0.35)] bg-gradient-to-br from-[#0b162b] via-[#101c33] to-[#0f1f3d] p-7 shadow-[0_18px_60px_rgba(0,0,0,0.35)]">
-          <h3 className="text-2xl font-semibold">Want early access?</h3>
-          <p className="mt-2 max-w-3xl text-[var(--muted)] leading-relaxed">
-            LabSight is in private beta. Be the first to try the future of lab QC, sample tracking, and stock management—one ecosystem, one login, one reliable
-            place for operations.
+        <section className="section labops-section" id="labops">
+          <p className="section-label">Coming Soon</p>
+          <div className="section-heading">
+            <h2>LabOps - the operational memory your lab keeps losing.</h2>
+            <p>
+              A local-first workspace for QC handover, troubleshooting,
+              investigation notes, analyser issues, and reagent or calibrator
+              lot context.
+            </p>
+          </div>
+          <p className="body-copy max-copy">
+            LabOps is not a replacement for your LIS, middleware, analyser
+            software, Unity Realtime, or official QC system. It is the
+            collaboration layer around those systems: the place where current
+            issues, handover notes, troubleshooting steps, ownership changes,
+            and operational context stay visible instead of disappearing into
+            memory, paper, or message threads.
           </p>
-          <div className="mt-4 flex flex-wrap gap-3">
-            <a className={buttonPrimary} href="mailto:hello@labsight.io">
-              Register your interest
-            </a>
-            <a className={buttonSecondary} href="#services">
-              Request a demo
-            </a>
-            <a className={buttonSecondary} href="mailto:hello@labsight.io?subject=Partner%20with%20LabSight">
-              Partner with us
-            </a>
+          <div className="feature-grid">
+            {labOpsFeatures.map(([title, copy]) => (
+              <article className="feature-tile" key={title}>
+                <h3>{title}</h3>
+                <p>{copy}</p>
+              </article>
+            ))}
+          </div>
+          <div className="waitlist-card" id="waitlist">
+            <div>
+              <h3>Join the LabOps Waitlist</h3>
+              <p>
+                Be among the first labs to test LabOps as an operational memory
+                layer. Early access is free, and your feedback shapes what we
+                build next.
+              </p>
+            </div>
+            <form className="waitlist-form" action="mailto:hello@labsight.io?subject=LabOps%20Waitlist" method="post" encType="text/plain">
+              <label htmlFor="work-email">Work email address</label>
+              <div>
+                <input id="work-email" name="work-email" type="email" placeholder="scientist@lab.org" required />
+                <button className="btn" type="submit">Request Early Access</button>
+              </div>
+              <p>No commitment. No spam. Just a heads-up when LabOps is ready for your lab.</p>
+            </form>
+          </div>
+        </section>
+
+        <section className="section" id="audience">
+          <p className="section-label">Audience</p>
+          <div className="section-heading">
+            <h2>Built for the people doing the work.</h2>
+          </div>
+          <div className="three-grid">
+            {audiences.map(([title, copy]) => (
+              <article className="resource-card" key={title}>
+                <h3>{title}</h3>
+                <p>{copy}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="section" id="approach">
+          <p className="section-label">Our Approach</p>
+          <div className="section-heading">
+            <h2>Clinically grounded. Practically designed.</h2>
+          </div>
+          <div className="three-grid">
+            {approach.map(([title, copy]) => (
+              <article className="resource-card" key={title}>
+                <h3>{title}</h3>
+                <p>{copy}</p>
+              </article>
+            ))}
           </div>
         </section>
       </main>
 
-      <footer className="border-t border-[var(--border)] bg-transparent py-6">
-        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-5 text-sm text-[var(--muted)]">
-          <div className="flex items-center gap-3 text-[var(--muted)]">
-            <Image
-              src="/labsight_logo.svg"
-              alt="LabSight logo"
-              width={200}
-              height={200}
-              className="h-10 w-auto brightness-110 contrast-110"
-            />
-            <span>LabSight</span>
+      <a className="mobile-waitlist" href="#waitlist">Join LabOps Waitlist</a>
+
+      <footer className="footer">
+        <div className="footer-grid">
+          <div>
+            <h3>LabSight</h3>
+            <p>Practical software tools for laboratory scientists.</p>
           </div>
-          <span>Built for modern diagnostic and research labs.</span>
+          <div>
+            <h3>Free Tools</h3>
+            <a href="/tools/rgtlotverifierv1-2.html">Reagent Lot Verification Calculator</a>
+            <span>Westgard QC Checker (coming soon)</span>
+            <span>AMR Validator (coming soon)</span>
+            <span>Biological Variation Reference (coming soon)</span>
+          </div>
+          <div>
+            <h3>Guides</h3>
+            <a href="/blog/new-reagent-lot-verification-walkthrough">New Lot Verification Walkthrough</a>
+            <a href="/blog/understanding-rcpaqap-analytical-performance-specifications">RCPAQAP APS Explained</a>
+            <a href="/blog/westgard-rules-explained">Westgard Rules Guide</a>
+            <a href="/blog/qc-target-re-establishment-after-lot-change">QC Target Re-establishment</a>
+            <a href="/blog/grubbs-test-for-outliers">Grubbs Test Guide</a>
+            <a href="/blog/total-allowable-error-imprecision-bias">Total Allowable Error Guide</a>
+          </div>
+          <div>
+            <h3>LabOps</h3>
+            <a href="#labops">About LabOps</a>
+            <a href="#waitlist">Join the Waitlist</a>
+            <span>Request a Demo (coming soon)</span>
+          </div>
+          <div>
+            <h3>Legal</h3>
+            <span>Privacy Policy</span>
+            <span>Terms of Use</span>
+          </div>
+        </div>
+        <div className="footer-bottom">
+          © 2026 LabSight. Built for laboratory scientists, by people who care
+          about diagnostic quality.
         </div>
       </footer>
     </div>

@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin | LabSight</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="site-shell admin-shell">
+      <header class="site-header">
+        <div class="site-nav">
+          <a class="brand" href="index.html">
+            <img class="brand-logo" src="public/labsight_logo.svg" alt="LabSight logo" />
+            <span>LabSight Admin</span>
+          </a>
+          <nav class="nav-links" aria-label="Admin navigation">
+            <a href="admin.html">Admin</a>
+            <a href="blog.html">Blog</a>
+            <a href="downloads.html">Downloads</a>
+            <a href="index.html">Public Site</a>
+          </nav>
+          <a class="btn btn-small secondary" href="blog.html">View Blog</a>
+        </div>
+      </header>
+
+      <main>
+        <section class="admin-hero">
+          <div>
+            <p class="eyebrow">Admin workspace</p>
+            <h1>Publishing control room for LabSight.</h1>
+            <p>
+              A general admin shell with the first working area focused on blog
+              drafting, review, and publishing preparation.
+            </p>
+          </div>
+          <div class="admin-status-card">
+            <span>Current focus</span>
+            <strong>Blog publishing</strong>
+            <p><span id="draft-count">6</span> article drafts loaded</p>
+          </div>
+        </section>
+
+        <section class="admin-layout">
+          <nav class="admin-module-bar" aria-label="Admin modules">
+            <span>Modules</span>
+            <div class="admin-module-list">
+              <button class="active" type="button"><span>Blog publishing</span><small>Active</small></button>
+              <button type="button"><span>Tool library</span><small>Later</small></button>
+              <button type="button"><span>Downloads</span><small>Later</small></button>
+              <button type="button"><span>Waitlist</span><small>Later</small></button>
+              <button type="button"><span>Site settings</span><small>Later</small></button>
+            </div>
+          </nav>
+
+          <section class="admin-panel">
+            <div class="admin-panel-header">
+              <div>
+                <p class="panel-label">Blog publishing</p>
+                <h2>Article editor</h2>
+              </div>
+              <div class="admin-actions">
+                <span class="admin-message" id="admin-message">Draft loaded</span>
+                <button class="btn secondary" type="button" id="new-draft">New Draft</button>
+              </div>
+            </div>
+
+            <div class="admin-workspace">
+              <aside class="admin-draft-list" aria-label="Article drafts">
+                <h3>Article queue</h3>
+                <p>Read/select a draft to edit it.</p>
+                <div id="draft-list"></div>
+              </aside>
+
+              <div class="admin-editor-column">
+                <form class="admin-editor-form" id="editor-form">
+                  <div class="field-grid two-column">
+                    <label>
+                      Title
+                      <input id="field-title" />
+                    </label>
+                    <label>
+                      Slug
+                      <input id="field-slug" />
+                    </label>
+                    <label>
+                      Category
+                      <input id="field-category" />
+                    </label>
+                    <label>
+                      Status
+                      <select id="field-status">
+                        <option>Draft</option>
+                        <option>In review</option>
+                        <option>Ready to publish</option>
+                        <option>Published</option>
+                        <option>Placeholder</option>
+                        <option>Featured draft</option>
+                      </select>
+                    </label>
+                    <label>
+                      Reading time
+                      <input id="field-time" />
+                    </label>
+                    <label>
+                      Author
+                      <input id="field-author" />
+                    </label>
+                  </div>
+
+                  <label>
+                    Summary
+                    <textarea id="field-summary" rows="3"></textarea>
+                  </label>
+
+                  <label>
+                    Tags
+                    <input id="field-tags" />
+                  </label>
+
+                  <label>
+                    Body
+                    <textarea class="body-editor" id="field-body" rows="18"></textarea>
+                  </label>
+
+                  <div class="admin-form-actions">
+                    <button class="btn" type="submit">Update Draft</button>
+                    <button class="btn secondary" type="button" id="mark-ready">Mark Ready</button>
+                    <button class="btn danger" type="button" id="delete-draft">Delete Draft</button>
+                    <a class="text-link" id="public-link" href="article.html">Open public article →</a>
+                  </div>
+                </form>
+
+                <aside class="admin-preview" aria-label="Article preview">
+                  <h3>Preview</h3>
+                  <article class="article-card" id="article-preview"></article>
+                </aside>
+              </div>
+            </div>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      let drafts = [
+        {
+          title: 'New Reagent Lot Verification - A Complete Walkthrough',
+          slug: 'new-reagent-lot-verification-walkthrough',
+          category: 'QC Verification',
+          status: 'Featured draft',
+          time: '~12 min',
+          author: 'LabSight Editorial',
+          summary: 'Why lot verification matters, how to design the comparison, how to interpret APS bias, what to do when a lot fails, and how to document the outcome.',
+          tags: 'QC Verification',
+          body: 'This is not a real article yet; this placeholder marks the reagent lot verification guide that will be researched and written first.\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Integer vitae nibh id mauris facilisis volutpat.\n\nPraesent gravida neque nec ante viverra, non cursus mi consequat.\n\nMorbi bibendum risus id magna feugiat, sed viverra nulla porta.',
+        },
+        {
+          title: 'Understanding RCPAQAP Analytical Performance Specifications',
+          slug: 'understanding-rcpaqap-analytical-performance-specifications',
+          category: 'Acceptance Criteria',
+          status: 'Placeholder',
+          time: '~8 min',
+          author: 'LabSight Editorial',
+          summary: 'A plain-language explanation of APS limits, basis categories, and how to apply RCPAQAP criteria in routine laboratory decisions.',
+          tags: 'Acceptance Criteria',
+          body: 'This is not a real article yet; this placeholder marks the RCPAQAP APS guide that will be written after proper research.\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit.\n\nVivamus ac libero eget est egestas vulputate.\n\nMauris sodales justo non arcu luctus, vitae pulvinar ante faucibus.',
+        },
+        {
+          title: 'Westgard Rules Explained - Which Rules, When, and Why',
+          slug: 'westgard-rules-explained',
+          category: 'QC Rules',
+          status: 'Placeholder',
+          time: '~10 min',
+          author: 'LabSight Editorial',
+          summary: 'How common Westgard rules detect random and systematic error, and how to choose a rule set that fits the clinical risk of an assay.',
+          tags: 'QC Rules',
+          body: 'This is not a real article yet; this placeholder marks the Westgard rules guide that will be written after proper research.\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit.\n\nMaecenas luctus neque eu velit luctus, vitae faucibus ante convallis.',
+        },
+      ];
+
+      let selectedSlug = drafts[0].slug;
+      const fields = {
+        title: document.getElementById('field-title'),
+        slug: document.getElementById('field-slug'),
+        category: document.getElementById('field-category'),
+        status: document.getElementById('field-status'),
+        time: document.getElementById('field-time'),
+        author: document.getElementById('field-author'),
+        summary: document.getElementById('field-summary'),
+        tags: document.getElementById('field-tags'),
+        body: document.getElementById('field-body'),
+      };
+
+      const draftList = document.getElementById('draft-list');
+      const preview = document.getElementById('article-preview');
+      const message = document.getElementById('admin-message');
+      const publicLink = document.getElementById('public-link');
+      const draftCount = document.getElementById('draft-count');
+
+      function selectedDraft() {
+        return drafts.find((draft) => draft.slug === selectedSlug) || drafts[0];
+      }
+
+      function setMessage(text) {
+        message.textContent = text;
+      }
+
+      function renderDraftList() {
+        draftCount.textContent = drafts.length;
+        draftList.innerHTML = drafts
+          .map((draft) => `
+            <button class="${draft.slug === selectedSlug ? 'selected' : ''}" type="button" data-slug="${draft.slug}">
+              <strong>${draft.title}</strong>
+              <span>${draft.category} · ${draft.status}</span>
+            </button>
+          `)
+          .join('');
+
+        draftList.querySelectorAll('button').forEach((button) => {
+          button.addEventListener('click', () => {
+            selectedSlug = button.dataset.slug;
+            setMessage('Draft loaded');
+            render();
+          });
+        });
+      }
+
+      function renderFields() {
+        const draft = selectedDraft();
+        Object.keys(fields).forEach((key) => {
+          fields[key].value = draft[key];
+        });
+        publicLink.href = `article.html?slug=${draft.slug}`;
+      }
+
+      function renderPreview() {
+        const draft = selectedDraft();
+        const paragraphs = draft.body
+          .split(/\n{2,}/)
+          .map((paragraph) => paragraph.trim())
+          .filter(Boolean)
+          .slice(0, 4)
+          .map((paragraph) => `<p>${paragraph}</p>`)
+          .join('');
+
+        preview.innerHTML = `
+          <div class="article-meta">
+            <span>${draft.category}</span>
+            <span>${draft.time}</span>
+            <span>${draft.status}</span>
+          </div>
+          <h2>${draft.title}</h2>
+          <p class="article-summary">${draft.summary}</p>
+          <div class="article-body-preview">${paragraphs}</div>
+        `;
+      }
+
+      function render() {
+        renderDraftList();
+        renderFields();
+        renderPreview();
+      }
+
+      Object.entries(fields).forEach(([key, field]) => {
+        field.addEventListener('input', () => {
+          const currentSlug = selectedSlug;
+          drafts = drafts.map((draft) =>
+            draft.slug === currentSlug ? { ...draft, [key]: field.value } : draft
+          );
+          if (key === 'slug') {
+            selectedSlug = field.value;
+          }
+          setMessage('Unsaved changes');
+          renderDraftList();
+          renderPreview();
+          publicLink.href = `article.html?slug=${selectedDraft().slug}`;
+        });
+      });
+
+      document.getElementById('editor-form').addEventListener('submit', (event) => {
+        event.preventDefault();
+        setMessage('Draft saved in this admin preview');
+      });
+
+      document.getElementById('mark-ready').addEventListener('click', () => {
+        drafts = drafts.map((draft) =>
+          draft.slug === selectedSlug ? { ...draft, status: 'Ready to publish' } : draft
+        );
+        setMessage('Marked ready to publish');
+        render();
+      });
+
+      document.getElementById('delete-draft').addEventListener('click', () => {
+        if (drafts.length === 1) {
+          setMessage('Keep at least one draft in the preview');
+          return;
+        }
+
+        drafts = drafts.filter((draft) => draft.slug !== selectedSlug);
+        selectedSlug = drafts[0].slug;
+        setMessage('Draft deleted');
+        render();
+      });
+
+      document.getElementById('new-draft').addEventListener('click', () => {
+        const nextNumber = drafts.length + 1;
+        const draft = {
+          title: `Untitled LabSight Article ${nextNumber}`,
+          slug: `untitled-labsight-article-${nextNumber}`,
+          category: 'Editorial',
+          status: 'Draft',
+          time: '~5 min',
+          author: 'LabSight Editorial',
+          summary: 'Short working summary for the article.',
+          tags: 'Editorial',
+          body: 'This is not a real article yet; this placeholder marks a new admin-created draft.\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit.',
+        };
+        drafts = [draft, ...drafts];
+        selectedSlug = draft.slug;
+        setMessage('New draft created');
+        render();
+      });
+
+      render();
+    </script>
+  </body>
+</html>

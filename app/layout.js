@@ -14,9 +14,9 @@ const manrope = Manrope({
 });
 
 export const metadata = {
-  title: "LabSight | Modern Lab Operations",
+  title: "LabSight | Laboratory QC Tools and Guides",
   description:
-    "LabSight is a unified digital ecosystem for quality management, sample logistics, and inventory control."
+    "Free laboratory QC tools, practical guides, and clinical resources for laboratory scientists, with LabOps coming soon."
 };
 
 export default function RootLayout({ children }) {

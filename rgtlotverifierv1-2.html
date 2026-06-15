@@ -1,0 +1,4267 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reagent Lot Verification Tool</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        background: #040814;
+        font-family:
+          'Manrope',
+          -apple-system,
+          BlinkMacSystemFont,
+          'Segoe UI',
+          sans-serif;
+        color: #f7fbff;
+        font-size: 16px;
+        line-height: 1.55;
+        min-height: 100vh;
+      }
+      input,
+      textarea,
+      select {
+        font-family: inherit;
+      }
+      input:focus,
+      textarea:focus,
+      select:focus {
+        outline: none;
+        border-color: #8dbbff !important;
+        box-shadow: 0 0 0 3px rgba(141, 187, 255, 0.16);
+      }
+      input[type='number']::-webkit-inner-spin-button {
+        opacity: 0.4;
+      }
+      select option {
+        background: #17243d;
+        color: #f7fbff;
+      }
+      .report-root {
+        display: flex;
+        flex-direction: column;
+      }
+      .report-header {
+        order: 1;
+      }
+      .overall-page {
+        order: 2;
+      }
+      .qc-level-page {
+        order: 3;
+      }
+      .report-root > .no-print {
+        order: 4;
+      }
+      @media (max-width: 760px) {
+        .labsight-nav-inner {
+          align-items: flex-start !important;
+          flex-direction: column !important;
+          padding: 14px 18px !important;
+        }
+        .labsight-nav-links {
+          justify-content: flex-start !important;
+        }
+        .verifier-title-shell,
+        .verifier-stepper,
+        .verifier-main,
+        .verifier-footer {
+          padding-left: 18px !important;
+          padding-right: 18px !important;
+        }
+        .verifier-title-card {
+          padding: 22px !important;
+        }
+        .verifier-stepper {
+          overflow-x: auto !important;
+        }
+      }
+      @media print {
+        @page {
+          size: A4;
+          margin: 12mm;
+        }
+        .no-print {
+          display: none !important;
+        }
+        body {
+          background: white !important;
+          color: #111 !important;
+          font-size: 11px;
+        }
+        .print-card {
+          background: #f8f8f8 !important;
+          border-color: #ccc !important;
+          color: #111 !important;
+          box-shadow: none !important;
+        }
+        .report-root .print-card {
+          margin-bottom: 0 !important;
+          padding: 12px !important;
+        }
+        .overall-page,
+        .qc-level-page {
+          font-size: 10px !important;
+          line-height: 1.35 !important;
+        }
+        .overall-page div,
+        .qc-level-page div {
+          line-height: 1.35 !important;
+        }
+        .overall-page textarea {
+          height: 52px !important;
+        }
+        .qc-level-page table {
+          font-size: 10px !important;
+        }
+        .print-white {
+          background: white !important;
+          color: #111 !important;
+        }
+        .report-header {
+          order: 1;
+          break-after: avoid;
+          page-break-after: avoid;
+          margin-bottom: 8px !important;
+        }
+        .report-root {
+          display: flex !important;
+          flex-direction: column !important;
+        }
+        .qc-level-page {
+          order: 3;
+          break-before: page;
+          page-break-before: always;
+          break-inside: avoid;
+          page-break-inside: avoid;
+          margin-bottom: 0 !important;
+        }
+        .overall-page {
+          order: 2;
+          break-inside: avoid;
+          page-break-inside: avoid;
+          margin-bottom: 0 !important;
+        }
+        svg {
+          max-height: 150px;
+        }
+        .fail-box {
+          background: #fff0f0 !important;
+          border-color: #f87171 !important;
+          color: #7f1d1d !important;
+        }
+        .pass-box {
+          background: #f0fff8 !important;
+          border-color: #34d399 !important;
+          color: #064e3b !important;
+        }
+        .warn-box {
+          background: #fffbeb !important;
+          border-color: #fbbf24 !important;
+          color: #78350f !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      const { useState, useMemo } = React;
+      const h = React.createElement;
+
+      // ── Constants ──────────────────────────────────────────────
+      const LEVELS = ['Level 1 (Low)', 'Level 2 (Mid)', 'Level 3 (High)'];
+      const N_RUNS = 5;
+      const GRUBBS_CRITICAL_N5 = 1.672; // p<0.05, n=5
+      const GRUBBS_CRITICAL_N4 = 1.481; // p<0.05, n=4
+
+      const C = {
+        bg: '#040814',
+        surface: '#111c31',
+        card: '#17243d',
+        border: '#3b4b66',
+        accent: '#8dbbff',
+        accentSoft: '#172f52',
+        green: '#86efac',
+        greenBg: '#10291f',
+        greenBorder: '#2f6f52',
+        red: '#fca5a5',
+        redBg: '#3a1518',
+        redBorder: '#9f333a',
+        yellow: '#fde68a',
+        yellowBg: '#372b08',
+        yellowBorder: '#9a740f',
+        text: '#f7fbff',
+        muted: '#c5d1e6',
+      };
+
+      // ── RCPAQAP APS Data ───────────────────────────────────────
+      const APS_DATA = {
+        // General Serum Chemistry
+        Sodium: {
+          lowerAbs: 3,
+          lowerConc: 150,
+          upperPct: 2,
+          units: 'mmol/L',
+          basis: 'Total Error',
+          level: 'Minimal',
+        },
+        Potassium: {
+          lowerAbs: 0.2,
+          lowerConc: 4.0,
+          upperPct: 5,
+          units: 'mmol/L',
+          basis: 'Imprecision',
+          level: 'Desirable',
+        },
+        Chloride: {
+          lowerAbs: 3,
+          lowerConc: 100,
+          upperPct: 3,
+          units: 'mmol/L',
+          basis: 'Total Error',
+          level: 'Minimal',
+        },
+        Bicarbonate: {
+          lowerAbs: 2.0,
+          lowerConc: 20.0,
+          upperPct: 10,
+          units: 'mmol/L',
+          basis: 'Total Error',
+          level: 'Minimal',
+        },
+        Urea: {
+          lowerAbs: 0.5,
+          lowerConc: 4.0,
+          upperPct: 12,
+          units: 'mmol/L',
+          basis: 'Imprecision',
+          level: 'Desirable',
+        },
+        Creatinine: {
+          lowerAbs: 8.0,
+          lowerConc: 100.0,
+          upperPct: 8,
+          units: 'µmol/L',
+          basis: 'Imprecision',
+          level: 'Minimal',
+        },
+        Glucose: {
+          lowerAbs: 0.4,
+          lowerConc: 5.0,
+          upperPct: 8,
+          units: 'mmol/L',
+          basis: 'Imprecision',
+          level: 'Desirable',
+        },
+        Calcium: {
+          lowerAbs: 0.1,
+          lowerConc: 2.5,
+          upperPct: 4,
+          units: 'mmol/L',
+          basis: 'Imprecision',
+          level: 'Minimal',
+        },
+        Albumin: {
+          lowerAbs: 2.0,
+          lowerConc: 33.0,
+          upperPct: 6,
+          units: 'g/L',
+          basis: 'Total Error',
+          level: 'Desirable',
+        },
+        'Total Protein': {
+          lowerAbs: 3,
+          lowerConc: 60,
+          upperPct: 5,
+          units: 'g/L',
+          basis: 'Total Error',
+          level: 'Desirable',
+        },
+        'Bilirubin Total': {
+          lowerAbs: 3,
+          lowerConc: 25,
+          upperPct: 12,
+          units: 'µmol/L',
+          basis: 'Imprecision',
+          level: 'Optimal',
+        },
+        'Bilirubin Conjugated': {
+          lowerAbs: 3,
+          lowerConc: 15,
+          upperPct: 20,
+          units: 'µmol/L',
+          basis: 'Imprecision',
+          level: 'Optimal',
+        },
+        ALT: {
+          lowerAbs: 5,
+          lowerConc: 40,
+          upperPct: 12,
+          units: 'U/L',
+          basis: 'Imprecision',
+          level: 'Optimal',
+        },
+        AST: {
+          lowerAbs: 5,
+          lowerConc: 40,
+          upperPct: 12,
+          units: 'U/L',
+          basis: 'Imprecision',
+          level: 'Desirable',
+        },
+        GGT: {
+          lowerAbs: 5,
+          lowerConc: 40,
+          upperPct: 12,
+          units: 'U/L',
+          basis: 'Imprecision',
+          level: 'Desirable',
+        },
+        'Alkaline Phosphatase': {
+          lowerAbs: 15,
+          lowerConc: 125,
+          upperPct: 12,
+          units: 'U/L',
+          basis: 'Total Error',
+          level: 'Desirable',
+        },
+        'Creatine Kinase': {
+          lowerAbs: 15,
+          lowerConc: 125,
+          upperPct: 12,
+          units: 'U/L',
+          basis: 'Imprecision',
+          level: 'Optimal',
+        },
+        'Lactate Dehydrogenase': {
+          lowerAbs: 20,
+          lowerConc: 250,
+          upperPct: 8,
+          units: 'U/L',
+          basis: 'Prof. Opinion',
+          level: '',
+        },
+        Amylase: {
+          lowerAbs: 10,
+          lowerConc: 100,
+          upperPct: 10,
+          units: 'U/L',
+          basis: 'Imprecision',
+          level: 'Desirable',
+        },
+        Lipase: {
+          lowerAbs: 12,
+          lowerConc: 60,
+          upperPct: 20,
+          units: 'U/L',
+          basis: 'Imprecision',
+          level: 'Desirable',
+        },
+        Cholesterol: {
+          lowerAbs: 0.3,
+          lowerConc: 5.0,
+          upperPct: 6,
+          units: 'mmol/L',
+          basis: 'Imprecision',
+          level: 'Desirable',
+        },
+        'HDL Cholesterol': {
+          lowerAbs: 0.1,
+          lowerConc: 0.8,
+          upperPct: 12,
+          units: 'mmol/L',
+          basis: 'Imprecision',
+          level: 'Minimal',
+        },
+        Triglyceride: {
+          lowerAbs: 0.2,
+          lowerConc: 1.6,
+          upperPct: 12,
+          units: 'mmol/L',
+          basis: 'Imprecision',
+          level: 'Optimal',
+        },
+        Iron: {
+          lowerAbs: 3.0,
+          lowerConc: 25.0,
+          upperPct: 12,
+          units: 'µmol/L',
+          basis: 'Imprecision',
+          level: 'Optimal',
+        },
+        Magnesium: {
+          lowerAbs: 0.1,
+          lowerConc: 1.25,
+          upperPct: 8,
+          units: 'mmol/L',
+          basis: 'Total Error',
+          level: 'Minimal',
+        },
+        Phosphate: {
+          lowerAbs: 0.06,
+          lowerConc: 0.75,
+          upperPct: 8,
+          units: 'mmol/L',
+          basis: 'Imprecision',
+          level: 'Desirable',
+        },
+        Urate: {
+          lowerAbs: 0.03,
+          lowerConc: 0.38,
+          upperPct: 8,
+          units: 'mmol/L',
+          basis: 'Imprecision',
+          level: 'Desirable',
+        },
+        Osmolality: {
+          lowerAbs: 8,
+          lowerConc: 266,
+          upperPct: 3,
+          units: 'mmol/kg',
+          basis: 'Total Error',
+          level: 'Minimal',
+        },
+        Transferrin: {
+          lowerAbs: 0.2,
+          lowerConc: 2.5,
+          upperPct: 8,
+          units: 'g/L',
+          basis: 'Total Error',
+          level: 'Minimal',
+        },
+        Fructosamine: {
+          lowerAbs: 15,
+          lowerConc: 250,
+          upperPct: 6,
+          units: 'µmol/L',
+          basis: 'Imprecision',
+          level: 'Minimal',
+        },
+        Lactate: {
+          lowerAbs: 0.5,
+          lowerConc: 4.0,
+          upperPct: 12,
+          units: 'mmol/L',
+          basis: 'Imprecision',
+          level: 'Optimal',
+        },
+        // Endocrine
+        TSH: {
+          lowerAbs: 0.1,
+          lowerConc: 0.5,
+          upperPct: 20,
+          units: 'mU/L',
+          basis: 'Imprecision',
+          level: 'Desirable',
+        },
+        'Free T4': {
+          lowerAbs: 1.5,
+          lowerConc: 12,
+          upperPct: 12,
+          units: 'pmol/L',
+          basis: 'Total Error',
+          level: 'Desirable',
+        },
+        'Free T3': {
+          lowerAbs: 0.7,
+          lowerConc: 3.5,
+          upperPct: 20,
+          units: 'pmol/L',
+          basis: 'Total Error',
+          level: 'Desirable',
+        },
+        'Total T4': {
+          lowerAbs: 12,
+          lowerConc: 120,
+          upperPct: 10,
+          units: 'nmol/L',
+          basis: 'Total Error',
+          level: 'Desirable',
+        },
+        'Total T3': {
+          lowerAbs: 0.2,
+          lowerConc: 1.3,
+          upperPct: 15,
+          units: 'nmol/L',
+          basis: 'Total Error',
+          level: 'Desirable',
+        },
+        Cortisol: {
+          lowerAbs: 15,
+          lowerConc: 100,
+          upperPct: 15,
+          units: 'nmol/L',
+          basis: 'Imprecision',
+          level: 'Optimal',
+        },
+        Testosterone: {
+          lowerAbs: 0.4,
+          lowerConc: 2.7,
+          upperPct: 15,
+          units: 'nmol/L',
+          basis: 'Imprecision',
+          level: 'Minimal',
+        },
+        Oestradiol: {
+          lowerAbs: 25,
+          lowerConc: 100,
+          upperPct: 25,
+          units: 'pmol/L',
+          basis: 'Total Error',
+          level: 'Desirable',
+        },
+        Progesterone: {
+          lowerAbs: 2,
+          lowerConc: 10,
+          upperPct: 15,
+          units: 'nmol/L',
+          basis: 'Imprecision',
+          level: 'Optimal',
+        },
+        FSH: {
+          lowerAbs: 1.0,
+          lowerConc: 10.0,
+          upperPct: 10,
+          units: 'IU/L',
+          basis: 'Imprecision',
+          level: 'Desirable',
+        },
+        LH: {
+          lowerAbs: 1.5,
+          lowerConc: 10.0,
+          upperPct: 15,
+          units: 'IU/L',
+          basis: 'Imprecision',
+          level: 'Desirable',
+        },
+        Prolactin: {
+          lowerAbs: 40,
+          lowerConc: 400,
+          upperPct: 10,
+          units: 'mIU/L',
+          basis: 'Imprecision',
+          level: 'Minimal',
+        },
+        Ferritin: {
+          lowerAbs: 4.0,
+          lowerConc: 27.0,
+          upperPct: 15,
+          units: 'µg/L',
+          basis: 'Imprecision',
+          level: 'Desirable',
+        },
+        Folate: {
+          lowerAbs: 1.5,
+          lowerConc: 6.0,
+          upperPct: 25,
+          units: 'nmol/L',
+          basis: 'Imprecision',
+          level: 'Desirable',
+        },
+        'Vitamin B12': {
+          lowerAbs: 18,
+          lowerConc: 120,
+          upperPct: 15,
+          units: 'pmol/L',
+          basis: 'Imprecision',
+          level: 'Desirable',
+        },
+        'Vitamin D3': {
+          lowerAbs: 9,
+          lowerConc: 60,
+          upperPct: 15,
+          units: 'nmol/L',
+          basis: 'Imprecision',
+          level: 'Minimal',
+        },
+        PTH: {
+          lowerAbs: 1.0,
+          lowerConc: 8.0,
+          upperPct: 12,
+          units: 'pmol/L',
+          basis: 'Imprecision',
+          level: 'Optimal',
+        },
+        Insulin: {
+          lowerAbs: 0.6,
+          lowerConc: 5.0,
+          upperPct: 12,
+          units: 'mU/L',
+          basis: 'Imprecision',
+          level: 'Optimal',
+        },
+        'Total PSA': {
+          lowerAbs: 0.4,
+          lowerConc: 5.0,
+          upperPct: 8,
+          units: 'µg/L',
+          basis: 'Imprecision',
+          level: 'Optimal',
+        },
+        'Free PSA': {
+          lowerAbs: 0.2,
+          lowerConc: 1.4,
+          upperPct: 15,
+          units: 'µg/L',
+          basis: 'Imprecision',
+          level: 'Optimal',
+        },
+        Aldosterone: {
+          lowerAbs: 24,
+          lowerConc: 160,
+          upperPct: 15,
+          units: 'pmol/L',
+          basis: 'Imprecision',
+          level: 'Optimal',
+        },
+        'IGF-1': {
+          lowerAbs: 3,
+          lowerConc: 25,
+          upperPct: 12,
+          units: 'nmol/L',
+          basis: 'Imprecision',
+          level: 'Minimal',
+        },
+        'C Peptide': {
+          lowerAbs: 0.15,
+          lowerConc: 1.25,
+          upperPct: 12,
+          units: 'nmol/L',
+          basis: 'Total Error',
+          level: 'Optimal',
+        },
+        Homocysteine: {
+          lowerAbs: 1.5,
+          lowerConc: 15.0,
+          upperPct: 10,
+          units: 'µmol/L',
+          basis: 'Total Error',
+          level: 'Optimal',
+        },
+        hCG: {
+          lowerAbs: 1,
+          lowerConc: 10,
+          upperPct: 10,
+          units: 'IU/L',
+          basis: 'Prof. Opinion',
+          level: '',
+        },
+        SHBG: {
+          lowerAbs: 6,
+          lowerConc: 50,
+          upperPct: 12,
+          units: 'nmol/L',
+          basis: 'Imprecision',
+          level: 'Desirable',
+        },
+        'DHEA Sulphate': {
+          lowerAbs: 1.2,
+          lowerConc: 10.0,
+          upperPct: 12,
+          units: 'µmol/L',
+          basis: 'Total Error',
+          level: 'Desirable',
+        },
+        // Cardiac / BNP
+        'Troponin I': {
+          lowerAbs: 0.002,
+          lowerConc: 0.01,
+          upperPct: 20,
+          units: 'µg/L',
+          basis: 'Prof. Opinion',
+          level: '',
+        },
+        'Troponin T': {
+          lowerAbs: 0.01,
+          lowerConc: 0.05,
+          upperPct: 20,
+          units: 'µg/L',
+          basis: 'Prof. Opinion',
+          level: '',
+        },
+        'NT-Pro-BNP': {
+          lowerAbs: 25,
+          lowerConc: 125,
+          upperPct: 20,
+          units: 'ng/L',
+          basis: 'Total Error',
+          level: 'Optimal',
+        },
+        BNP: {
+          lowerAbs: 20,
+          lowerConc: 100,
+          upperPct: 20,
+          units: 'ng/L',
+          basis: 'Prof. Opinion',
+          level: '',
+        },
+        'CK-MB': {
+          lowerAbs: 3,
+          lowerConc: 15,
+          upperPct: 20,
+          units: 'U/L',
+          basis: 'Imprecision',
+          level: 'Desirable',
+        },
+        // Tumour Markers
+        CEA: {
+          lowerAbs: 0.6,
+          lowerConc: 5.0,
+          upperPct: 12,
+          units: 'µg/L',
+          basis: 'Imprecision',
+          level: 'Desirable',
+        },
+        CA125: {
+          lowerAbs: 6,
+          lowerConc: 50,
+          upperPct: 12,
+          units: 'kU/L',
+          basis: 'Imprecision',
+          level: 'Optimal',
+        },
+        'CA15-3': {
+          lowerAbs: 3,
+          lowerConc: 30,
+          upperPct: 10,
+          units: 'kU/L',
+          basis: 'Imprecision',
+          level: 'Minimal',
+        },
+        'CA19-9': {
+          lowerAbs: 6,
+          lowerConc: 40,
+          upperPct: 15,
+          units: 'kU/L',
+          basis: 'Imprecision',
+          level: 'Desirable',
+        },
+        AFP: {
+          lowerAbs: 2,
+          lowerConc: 17,
+          upperPct: 12,
+          units: 'kIU/L',
+          basis: 'Imprecision',
+          level: 'Desirable',
+        },
+        Thyroglobulin: {
+          lowerAbs: 0.2,
+          lowerConc: 1.7,
+          upperPct: 12,
+          units: 'µg/L',
+          basis: 'Imprecision',
+          level: 'Desirable',
+        },
+        // Immunosuppressants
+        Cyclosporin: {
+          lowerAbs: 10,
+          lowerConc: 100,
+          upperPct: 10,
+          units: 'µg/L',
+          basis: 'Prof. Opinion',
+          level: '',
+        },
+        Tacrolimus: {
+          lowerAbs: 0.5,
+          lowerConc: 5.0,
+          upperPct: 10,
+          units: 'µg/L',
+          basis: 'Prof. Opinion',
+          level: '',
+        },
+        Sirolimus: {
+          lowerAbs: 0.5,
+          lowerConc: 5.0,
+          upperPct: 10,
+          units: 'µg/L',
+          basis: 'Prof. Opinion',
+          level: '',
+        },
+        // Drugs
+        Vancomycin: {
+          lowerAbs: 2.0,
+          lowerConc: 20.3,
+          upperPct: 10,
+          units: 'mg/L',
+          basis: 'Prof. Opinion',
+          level: '',
+        },
+        Gentamicin: {
+          lowerAbs: 0.2,
+          lowerConc: 2.0,
+          upperPct: 10,
+          units: 'mg/L',
+          basis: 'Prof. Opinion',
+          level: '',
+        },
+        'HbA1c (NGSP)': {
+          lowerAbs: 0.4,
+          lowerConc: 6.7,
+          upperPct: 6,
+          units: '%',
+          basis: 'Prof. Opinion',
+          level: '',
+        },
+        'HbA1c (IFCC)': {
+          lowerAbs: 4,
+          lowerConc: 45,
+          upperPct: 8,
+          units: 'mmol/mol',
+          basis: 'Prof. Opinion',
+          level: '',
+        },
+        // Blood Gases
+        pH: {
+          lowerAbs: 0.04,
+          lowerConc: null,
+          upperPct: null,
+          upperAbs: 0.04,
+          units: '',
+          basis: 'Prof. Opinion',
+          level: '',
+          fixedLimit: 0.04,
+        },
+        pCO2: {
+          lowerAbs: 2.0,
+          lowerConc: 34.0,
+          upperPct: 6,
+          units: 'mm Hg',
+          basis: 'Total Error',
+          level: 'Desirable',
+        },
+        'Ionised Calcium': {
+          lowerAbs: 0.04,
+          lowerConc: 1.0,
+          upperPct: 4,
+          units: 'mmol/L',
+          basis: 'Total Error',
+          level: 'Minimal',
+        },
+        CRP: {
+          lowerAbs: 0.8,
+          lowerConc: 4.0,
+          upperPct: 20,
+          units: 'mg/L',
+          basis: '',
+          level: '',
+        },
+        Ammonia: {
+          lowerAbs: 5,
+          lowerConc: 50,
+          upperPct: 10,
+          units: 'µmol/L',
+          basis: 'Prof. Opinion',
+          level: '',
+        },
+        // Other
+        'Manual entry': null,
+      };
+
+      const APS_GROUPS = {
+        'General Serum Chemistry': [
+          'Sodium',
+          'Potassium',
+          'Chloride',
+          'Bicarbonate',
+          'Urea',
+          'Creatinine',
+          'Glucose',
+          'Calcium',
+          'Albumin',
+          'Total Protein',
+          'Bilirubin Total',
+          'Bilirubin Conjugated',
+          'ALT',
+          'AST',
+          'GGT',
+          'Alkaline Phosphatase',
+          'Creatine Kinase',
+          'Lactate Dehydrogenase',
+          'Amylase',
+          'Lipase',
+          'Cholesterol',
+          'HDL Cholesterol',
+          'Triglyceride',
+          'Iron',
+          'Magnesium',
+          'Phosphate',
+          'Urate',
+          'Osmolality',
+          'Transferrin',
+          'Fructosamine',
+          'Lactate',
+          'CRP',
+        ],
+        'Endocrine / Hormones': [
+          'TSH',
+          'Free T4',
+          'Free T3',
+          'Total T4',
+          'Total T3',
+          'Cortisol',
+          'Testosterone',
+          'Oestradiol',
+          'Progesterone',
+          'FSH',
+          'LH',
+          'Prolactin',
+          'Ferritin',
+          'Folate',
+          'Vitamin B12',
+          'Vitamin D3',
+          'PTH',
+          'Insulin',
+          'Total PSA',
+          'Free PSA',
+          'Aldosterone',
+          'IGF-1',
+          'C Peptide',
+          'Homocysteine',
+          'hCG',
+          'SHBG',
+          'DHEA Sulphate',
+        ],
+        'Cardiac / BNP': [
+          'Troponin I',
+          'Troponin T',
+          'NT-Pro-BNP',
+          'BNP',
+          'CK-MB',
+        ],
+        'Tumour Markers': [
+          'CEA',
+          'CA125',
+          'CA15-3',
+          'CA19-9',
+          'AFP',
+          'Thyroglobulin',
+        ],
+        'Immunosuppressants / TDM': [
+          'Cyclosporin',
+          'Tacrolimus',
+          'Sirolimus',
+          'Vancomycin',
+          'Gentamicin',
+        ],
+        'Haematology / Other': [
+          'HbA1c (NGSP)',
+          'HbA1c (IFCC)',
+          'pH',
+          'pCO2',
+          'Ionised Calcium',
+          'Ammonia',
+        ],
+        'Manual entry': ['Manual entry'],
+      };
+
+      const SORTED_APS_ANALYTES = Object.keys(APS_DATA)
+        .filter((a) => a !== 'Manual entry')
+        .sort((a, b) => a.localeCompare(b));
+
+      const UNIT_OPTIONS = [
+        '',
+        'mmol/L',
+        'µmol/L',
+        'nmol/L',
+        'pmol/L',
+        'g/L',
+        'mg/L',
+        'µg/L',
+        'ng/L',
+        'U/L',
+        'kU/L',
+        'IU/L',
+        'kIU/L',
+        'mIU/L',
+        'mU/L',
+        'mmol/kg',
+        'mmol/mol',
+        '%',
+        'mm Hg',
+      ];
+
+      function normalizeUnit(unit) {
+        return String(unit || '')
+          .trim()
+          .replace(/ug/g, 'µg')
+          .replace(/uIU/g, 'µIU')
+          .replace(/uU/g, 'µU')
+          .replace(/\s+/g, ' ');
+      }
+
+      function unitToBaseFactor(unit) {
+        const u = normalizeUnit(unit);
+        const map = {
+          'pmol/L': { family: 'mol/L', factor: 1e-12 },
+          'nmol/L': { family: 'mol/L', factor: 1e-9 },
+          'µmol/L': { family: 'mol/L', factor: 1e-6 },
+          'mmol/L': { family: 'mol/L', factor: 1e-3 },
+          'mol/L': { family: 'mol/L', factor: 1 },
+          'ng/L': { family: 'g/L', factor: 1e-9 },
+          'µg/L': { family: 'g/L', factor: 1e-6 },
+          'mg/L': { family: 'g/L', factor: 1e-3 },
+          'g/L': { family: 'g/L', factor: 1 },
+          'mU/L': { family: 'U/L', factor: 1e-3 },
+          'U/L': { family: 'U/L', factor: 1 },
+          'kU/L': { family: 'U/L', factor: 1e3 },
+          'mIU/L': { family: 'IU/L', factor: 1e-3 },
+          'IU/L': { family: 'IU/L', factor: 1 },
+          'kIU/L': { family: 'IU/L', factor: 1e3 },
+          '%': { family: '%', factor: 1 },
+          'mmol/kg': { family: 'mmol/kg', factor: 1 },
+          'mmol/mol': { family: 'mmol/mol', factor: 1 },
+          'mm Hg': { family: 'mm Hg', factor: 1 },
+          '': { family: '', factor: 1 },
+        };
+        return map[u] || null;
+      }
+
+      function unitFactor(fromUnit, toUnit) {
+        const from = unitToBaseFactor(fromUnit);
+        const to = unitToBaseFactor(toUnit);
+        if (!from || !to || from.family !== to.family) return null;
+        return from.factor / to.factor;
+      }
+
+      function convertUnitValue(value, fromUnit, toUnit) {
+        const factor = unitFactor(fromUnit, toUnit);
+        if (
+          factor === null ||
+          value === null ||
+          value === undefined ||
+          isNaN(value)
+        )
+          return null;
+        return Number(value) * factor;
+      }
+
+      function formatUnitLabel(unit) {
+        return normalizeUnit(unit) || 'unitless';
+      }
+
+      // ── Statistical helpers ────────────────────────────────────
+      function calcStats(values) {
+        const nums = values
+          .filter((v) => v !== '' && !isNaN(parseFloat(v)))
+          .map(Number);
+        if (!nums.length)
+          return { mean: null, sd: null, cv: null, n: 0, values: nums };
+        const mean = nums.reduce((a, b) => a + b, 0) / nums.length;
+        const sd =
+          nums.length > 1
+            ? Math.sqrt(
+                nums.reduce((a, b) => a + Math.pow(b - mean, 2), 0) /
+                  (nums.length - 1),
+              )
+            : 0;
+        const cv = mean !== 0 ? (sd / mean) * 100 : 0;
+        return { mean, sd, cv, n: nums.length, values: nums };
+      }
+
+      function grubbs(values) {
+        // Returns index of outlier candidate and G statistic, or null
+        const nums = values.map(Number);
+        if (nums.length < 4) return null;
+        const mean = nums.reduce((a, b) => a + b, 0) / nums.length;
+        const sd = Math.sqrt(
+          nums.reduce((a, b) => a + Math.pow(b - mean, 2), 0) /
+            (nums.length - 1),
+        );
+        if (sd === 0) return null;
+        let maxG = 0,
+          maxIdx = -1;
+        nums.forEach((v, i) => {
+          const G = Math.abs(v - mean) / sd;
+          if (G > maxG) {
+            maxG = G;
+            maxIdx = i;
+          }
+        });
+        const critical =
+          nums.length === 5 ? GRUBBS_CRITICAL_N5 : GRUBBS_CRITICAL_N4;
+        return {
+          idx: maxIdx,
+          G: maxG,
+          critical,
+          isOutlier: maxG > critical,
+          value: nums[maxIdx],
+        };
+      }
+
+      function checkAPS(mean, apsData) {
+        if (!apsData || mean === null) return null;
+        if (apsData.fixedLimit !== undefined) {
+          return { limit: apsData.fixedLimit, type: 'fixed', pass: null }; // can't check without old lot
+        }
+        return {
+          lowerAbs: apsData.lowerAbs,
+          lowerConc: apsData.lowerConc,
+          upperPct: apsData.upperPct,
+        };
+      }
+
+      function conciseNumber(value, dec = 3) {
+        if (value === null || value === undefined || isNaN(value)) return '—';
+        return Number(value)
+          .toFixed(dec)
+          .replace(/\.?0+$/, '');
+      }
+
+      function apsBiasCheck(oldMean, newMean, apsData, userUnit) {
+        if (!apsData || oldMean === null || newMean === null) return null;
+        const apsUnit = normalizeUnit(apsData.units);
+        const labUnit = normalizeUnit(userUnit || apsUnit);
+        const toAps = unitFactor(labUnit, apsUnit);
+        const toLab = unitFactor(apsUnit, labUnit);
+        const diffLabDirect = Math.abs(newMean - oldMean);
+        const pctDiff = (diffLabDirect / Math.abs(oldMean)) * 100;
+
+        if (toAps === null || toLab === null) {
+          return {
+            pass: null,
+            diff: diffLabDirect,
+            pctDiff,
+            limit: null,
+            limitType: `APS unit ${formatUnitLabel(apsUnit)} is not convertible to selected unit ${formatUnitLabel(labUnit)}`,
+            absLimit: null,
+            unit: labUnit,
+            conversionWarning: true,
+          };
+        }
+
+        const oldMeanAps = oldMean * toAps;
+        const newMeanAps = newMean * toAps;
+        const diffAps = Math.abs(newMeanAps - oldMeanAps);
+        const diff = diffAps * toLab;
+        const unitSuffix = labUnit ? ` ${labUnit}` : '';
+        const convertedNote =
+          labUnit !== apsUnit && apsUnit
+            ? `; converted from APS ${apsUnit}`
+            : '';
+        let limit, limitType;
+        if (apsData.fixedLimit !== undefined) {
+          limit = apsData.fixedLimit * toLab;
+          limitType = `± ${conciseNumber(limit)}${unitSuffix} (fixed${convertedNote})`;
+          return {
+            pass: diffAps <= apsData.fixedLimit,
+            diff,
+            pctDiff,
+            limit,
+            limitType,
+            absLimit: limit,
+            unit: labUnit,
+            apsDiff: diffAps,
+            apsLimit: apsData.fixedLimit,
+          };
+        }
+        if (oldMeanAps <= apsData.lowerConc) {
+          limit = apsData.lowerAbs * toLab;
+          const cutover = apsData.lowerConc * toLab;
+          limitType = `± ${conciseNumber(limit)}${unitSuffix} below ${conciseNumber(cutover)}${unitSuffix} (absolute${convertedNote})`;
+          return {
+            pass: diffAps <= apsData.lowerAbs,
+            diff,
+            pctDiff,
+            limit,
+            limitType,
+            absLimit: limit,
+            unit: labUnit,
+            apsDiff: diffAps,
+            apsLimit: apsData.lowerAbs,
+          };
+        } else {
+          limit = apsData.upperPct;
+          const absEquiv = (apsData.upperPct / 100) * Math.abs(oldMean);
+          limitType = `± ${apsData.upperPct}% (= ± ${conciseNumber(absEquiv)}${unitSuffix})`;
+          return {
+            pass: pctDiff <= limit,
+            diff,
+            pctDiff,
+            limit,
+            limitType,
+            absLimit: absEquiv,
+            unit: labUnit,
+            apsDiff: diffAps,
+            apsLimit: (apsData.upperPct / 100) * Math.abs(oldMeanAps),
+          };
+        }
+      }
+
+      function fmt(val, dec = 3) {
+        if (val === null || val === undefined || isNaN(val)) return '—';
+        return Number(val).toFixed(dec);
+      }
+
+      function todayLocalISO() {
+        const d = new Date();
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      }
+
+      function cvStatus(cv, threshold) {
+        if (cv === null || cv === undefined || isNaN(cv)) return null;
+        if (cv <= threshold) return 'pass';
+        return cv < 10 ? 'warn' : 'fail';
+      }
+
+      function cvStatusLabel(status) {
+        if (status === 'pass') return 'PASS';
+        if (status === 'warn') return 'WARNING';
+        if (status === 'fail') return 'FAIL';
+        return '—';
+      }
+
+      // ── Levey-Jennings Chart ───────────────────────────────────
+      function LJChart({ runs, mean, sd, prevMean }) {
+        const validPts = runs
+          .map((v, i) => ({
+            i,
+            v: v !== '' && !isNaN(parseFloat(v)) ? parseFloat(v) : null,
+          }))
+          .filter((p) => p.v !== null);
+        const previousMean =
+          prevMean !== '' &&
+          prevMean !== null &&
+          prevMean !== undefined &&
+          !isNaN(parseFloat(prevMean))
+            ? parseFloat(prevMean)
+            : null;
+        if (!mean || sd === null || validPts.length < 2) {
+          return h(
+            'div',
+            {
+              style: {
+                color: C.muted,
+                textAlign: 'center',
+                padding: '24px 0',
+                fontSize: 12,
+              },
+            },
+            'Enter at least 2 values to display chart',
+          );
+        }
+        const W = 580,
+          H = 190,
+          PAD = { top: 14, right: 56, bottom: 26, left: 56 };
+        const plotW = W - PAD.left - PAD.right,
+          plotH = H - PAD.top - PAD.bottom;
+        const baseMin = mean - 3.6 * sd;
+        const baseMax = mean + 3.6 * sd;
+        const yMin =
+          previousMean !== null ? Math.min(baseMin, previousMean - 0.6 * sd) : baseMin;
+        const yMax =
+          previousMean !== null ? Math.max(baseMax, previousMean + 0.6 * sd) : baseMax;
+        const yRange = yMax - yMin;
+        const xScale = (idx) => PAD.left + (idx / (N_RUNS - 1)) * plotW;
+        const yScale = (v) => PAD.top + plotH - ((v - yMin) / yRange) * plotH;
+        const refLines = [
+          { y: mean + 3 * sd, color: C.red, dash: '4,3', label: '+3SD' },
+          { y: mean + 2 * sd, color: C.yellow, dash: '4,3', label: '+2SD' },
+          { y: mean + sd, color: C.green, dash: '3,3', label: '+1SD' },
+          { y: mean, color: C.accent, dash: '6,3', label: 'Mean' },
+          { y: mean - sd, color: C.green, dash: '3,3', label: '−1SD' },
+          { y: mean - 2 * sd, color: C.yellow, dash: '4,3', label: '−2SD' },
+          { y: mean - 3 * sd, color: C.red, dash: '4,3', label: '−3SD' },
+        ];
+        const prevLine =
+          previousMean !== null
+            ? {
+                y: previousMean,
+                color: '#a78bfa',
+                dash: '2,2',
+                label: 'Prev Mean',
+              }
+            : null;
+        return h(
+          'svg',
+          {
+            viewBox: `0 0 ${W} ${H}`,
+            style: { width: '100%', maxWidth: W, display: 'block' },
+          },
+          ...[...refLines, prevLine].filter(Boolean).map((r, i) => {
+            const y = yScale(r.y);
+            return h(
+              'g',
+              { key: i },
+              h('line', {
+                x1: PAD.left,
+                y1: y,
+                x2: PAD.left + plotW,
+                y2: y,
+                stroke: r.color,
+                strokeDasharray: r.dash,
+                strokeOpacity: 0.7,
+                strokeWidth: 1.2,
+              }),
+              h(
+                'text',
+                {
+                  x: PAD.left + plotW + 4,
+                  y: y + 4,
+                  fontSize: 9,
+                  fill: r.color,
+                  opacity: 0.85,
+                },
+                r.label,
+              ),
+              h(
+                'text',
+                {
+                  x: PAD.left - 6,
+                  y: y + 4,
+                  fontSize: 9,
+                  fill: C.muted,
+                  textAnchor: 'end',
+                },
+                fmt(r.y, 2),
+              ),
+            );
+          }),
+          ...Array(N_RUNS)
+            .fill(null)
+            .map((_, i) =>
+              h(
+                'text',
+                {
+                  key: i,
+                  x: xScale(i),
+                  y: H - PAD.bottom + 14,
+                  fontSize: 9,
+                  fill: C.muted,
+                  textAnchor: 'middle',
+                },
+                `R${i + 1}`,
+              ),
+            ),
+          validPts.length > 1 &&
+            h('polyline', {
+              points: validPts
+                .map((p) => `${xScale(p.i)},${yScale(p.v)}`)
+                .join(' '),
+              fill: 'none',
+              stroke: C.accent,
+              strokeWidth: 2,
+              strokeLinejoin: 'round',
+            }),
+          ...validPts.map((p, i) => {
+            const out2 = Math.abs(p.v - mean) > 2 * sd,
+              out3 = Math.abs(p.v - mean) > 3 * sd;
+            return h('circle', {
+              key: i,
+              cx: xScale(p.i),
+              cy: yScale(p.v),
+              r: 5,
+              fill: out3 ? C.red : out2 ? C.yellow : C.accent,
+              stroke: C.bg,
+              strokeWidth: 1.5,
+            });
+          }),
+        );
+      }
+
+      // ── Auto-generate investigation comments ──────────────────
+      function generateComments({
+        levelName,
+        apsBiasResult,
+        cvResult,
+        grubbsResult,
+        outlierExcluded,
+        prevStats,
+        newStats,
+        analyte,
+        cvThreshold,
+      }) {
+        const lines = [];
+
+        // APS bias check
+        if (apsBiasResult) {
+          if (apsBiasResult.conversionWarning) {
+            lines.push(
+              `⚠ BIAS REVIEW REQUIRED at ${levelName}: ${apsBiasResult.limitType}. Enter a compatible unit or review bias manually.`,
+            );
+          } else if (!apsBiasResult.pass) {
+            const severity =
+              apsBiasResult.diff > apsBiasResult.absLimit * 1.5
+                ? 'significant'
+                : 'marginal';
+            const unitSuffix = apsBiasResult.unit
+              ? ` ${apsBiasResult.unit}`
+              : '';
+            lines.push(
+              `⚠ BIAS EXCEEDED at ${levelName}: Observed difference of ${fmt(apsBiasResult.diff, 3)}${unitSuffix} (${fmt(apsBiasResult.pctDiff, 1)}%) exceeds the RCPAQAP APS limit of ${apsBiasResult.limitType}. This is a ${severity} exceedance.`,
+            );
+            lines.push(
+              `  → Recommended actions: (1) Verify QC reconstitution and handling were correct. (2) Repeat the 5-run verification at this level. (3) If still failing, recalibrate the analyser with the new lot and repeat. (4) If failure persists after recalibration, perform patient sample comparison (minimum 10 samples across the AMR). (5) If patient samples also show bias, contact the manufacturer and place the new lot on hold.`,
+            );
+          } else {
+            const pct =
+              apsBiasResult.pctDiff !== undefined
+                ? ` (${fmt(apsBiasResult.pctDiff, 1)}%)`
+                : '';
+            const unitSuffix = apsBiasResult.unit
+              ? ` ${apsBiasResult.unit}`
+              : '';
+            lines.push(
+              `✓ BIAS ACCEPTABLE at ${levelName}: Difference of ${fmt(apsBiasResult.diff, 3)}${unitSuffix}${pct} is within the APS limit of ${apsBiasResult.limitType}.`,
+            );
+          }
+        } else if (
+          prevStats &&
+          prevStats.mean !== '' &&
+          !isNaN(parseFloat(prevStats.mean))
+        ) {
+          lines.push(
+            `  Note: APS data not available for ${levelName}. Manual review of bias against laboratory-defined acceptance criteria required.`,
+          );
+        }
+
+        // CV check
+        if (cvResult !== null) {
+          if (
+            cvResult.status === 'fail' ||
+            (!cvResult.pass && !cvResult.status)
+          ) {
+            lines.push(
+              `⚠ %CV FAILED at ${levelName}: New lot %CV of ${fmt(cvResult.cv, 2)}% is ≥10% and exceeds the laboratory threshold of ≤${cvThreshold}%. This may indicate poor precision or reagent instability.`,
+            );
+            lines.push(
+              `  → Recommended actions: (1) Check for outliers using Grubbs test (see below). (2) Inspect for pre-analytical issues (pipetting errors, reagent mixing). (3) Compare against historical %CV from previous lot — if similar, may reflect inherent assay imprecision. (4) Monitor precision over the next 20 QC data points during the re-establishment phase.`,
+            );
+          } else if (cvResult.status === 'warn') {
+            lines.push(
+              `⚠ %CV WARNING at ${levelName}: New lot %CV of ${fmt(cvResult.cv, 2)}% exceeds the laboratory threshold of ≤${cvThreshold}% but remains below 10%. Review precision and monitor closely during the re-establishment phase.`,
+            );
+          } else {
+            lines.push(
+              `✓ %CV ACCEPTABLE at ${levelName}: New lot %CV of ${fmt(cvResult.cv, 2)}% is within the ≤${cvThreshold}% threshold.`,
+            );
+          }
+        }
+
+        // Grubbs outlier
+        if (grubbsResult && grubbsResult.isOutlier) {
+          if (outlierExcluded) {
+            lines.push(
+              `⚠ OUTLIER DETECTED and EXCLUDED at ${levelName}: Run ${grubbsResult.idx + 1} (value: ${fmt(grubbsResult.value, 3)}) was identified as a statistical outlier by Grubbs test (G = ${fmt(grubbsResult.G, 3)} > critical value ${grubbsResult.critical}). This value has been excluded from calculations. An outlier reason must be documented. Note: maximum 1 outlier may be excluded per level; minimum 4 values required.`,
+            );
+          } else {
+            lines.push(
+              `⚠ OUTLIER DETECTED (NOT EXCLUDED) at ${levelName}: Run ${grubbsResult.idx + 1} (value: ${fmt(grubbsResult.value, 3)}) flagged by Grubbs test (G = ${fmt(grubbsResult.G, 3)} > critical value ${grubbsResult.critical}). Consider excluding this value if a valid pre-analytical reason can be identified.`,
+            );
+          }
+        }
+
+        return lines;
+      }
+
+      // ── App ────────────────────────────────────────────────────
+      function App() {
+        const [step, setStep] = useState(0);
+        const [meta, setMeta] = useState({
+          analyte: '',
+          instrument: '',
+          newLot: '',
+          prevLot: '',
+          newLotExpiry: '',
+          prevLotExpiry: '',
+          analyst: '',
+          reviewer: '',
+          date: todayLocalISO(),
+          notes: '',
+          units: '',
+          cvThreshold: '5',
+          selectedAnalyte: '',
+          manualApsLower: '',
+          manualApsLowerConc: '',
+          manualApsUpperPct: '',
+        });
+        const [runs, setRuns] = useState(
+          LEVELS.reduce((a, l) => ({ ...a, [l]: Array(N_RUNS).fill('') }), {}),
+        );
+        const [prevStats, setPrevStats] = useState(
+          LEVELS.reduce(
+            (a, l) => ({ ...a, [l]: { mean: '', sd: '', cv: '' } }),
+            {},
+          ),
+        );
+        const [excludedOutliers, setExcludedOutliers] = useState(
+          LEVELS.reduce((a, l) => ({ ...a, [l]: null }), {}),
+        );
+        const [outlierReasons, setOutlierReasons] = useState(
+          LEVELS.reduce((a, l) => ({ ...a, [l]: '' }), {}),
+        );
+        const [activeLevel, setActiveLevel] = useState(LEVELS[0]);
+
+        const setMF = (f, v) => setMeta((m) => ({ ...m, [f]: v }));
+        const selectAnalyte = (v) =>
+          setMeta((m) => {
+            if (!v) return { ...m, analyte: '', selectedAnalyte: '' };
+            if (v === 'Manual entry') {
+              return { ...m, analyte: '', selectedAnalyte: 'Manual entry' };
+            }
+            const aps = APS_DATA[v];
+            return {
+              ...m,
+              analyte: v,
+              selectedAnalyte: v,
+              units: aps && aps.units ? aps.units : m.units,
+            };
+          });
+        const setManualAnalyte = (v) =>
+          setMeta((m) => ({
+            ...m,
+            analyte: v,
+            selectedAnalyte: 'Manual entry',
+          }));
+
+        // Determine APS data
+        const apsData = useMemo(() => {
+          const sel = meta.selectedAnalyte;
+          if (!sel || sel === 'Manual entry') {
+            const la = parseFloat(meta.manualApsLower);
+            const lc = parseFloat(meta.manualApsLowerConc);
+            const up = parseFloat(meta.manualApsUpperPct);
+            if (!isNaN(la) && !isNaN(lc) && !isNaN(up)) {
+              return {
+                lowerAbs: la,
+                lowerConc: lc,
+                upperPct: up,
+                units: meta.units,
+                basis: 'Manual',
+                level: '',
+              };
+            }
+            return null;
+          }
+          return APS_DATA[sel] || null;
+        }, [
+          meta.selectedAnalyte,
+          meta.manualApsLower,
+          meta.manualApsLowerConc,
+          meta.manualApsUpperPct,
+          meta.units,
+        ]);
+
+        const apsUnit = apsData ? normalizeUnit(apsData.units) : '';
+        const selectedUnit = normalizeUnit(meta.units || apsUnit);
+        const apsToSelectedFactor = apsData
+          ? unitFactor(apsUnit, selectedUnit)
+          : null;
+        const apsDisplayUnit =
+          apsData && apsToSelectedFactor === null ? apsUnit : selectedUnit;
+        const apsLowerAbsDisplay =
+          apsData && apsToSelectedFactor !== null && apsData.lowerAbs !== null
+            ? apsData.lowerAbs * apsToSelectedFactor
+            : apsData
+              ? apsData.lowerAbs
+              : null;
+        const apsLowerConcDisplay =
+          apsData && apsToSelectedFactor !== null && apsData.lowerConc !== null
+            ? apsData.lowerConc * apsToSelectedFactor
+            : apsData
+              ? apsData.lowerConc
+              : null;
+        const apsFixedLimitDisplay =
+          apsData &&
+          apsToSelectedFactor !== null &&
+          apsData.fixedLimit !== undefined
+            ? apsData.fixedLimit * apsToSelectedFactor
+            : apsData
+              ? apsData.fixedLimit
+              : null;
+        const apsConversionText =
+          apsData &&
+          apsUnit &&
+          selectedUnit &&
+          apsUnit !== selectedUnit &&
+          apsToSelectedFactor !== null
+            ? `APS limits converted from ${apsUnit} to ${selectedUnit} for display and reporting.`
+            : '';
+
+        // Stats per level (with outlier exclusion)
+        const stats = useMemo(() => {
+          return LEVELS.reduce((a, l) => {
+            const excluded = excludedOutliers[l];
+            const filteredRuns =
+              excluded !== null
+                ? runs[l].map((v, i) => (i === excluded ? '' : v))
+                : runs[l];
+            return { ...a, [l]: calcStats(filteredRuns) };
+          }, {});
+        }, [runs, excludedOutliers]);
+
+        // Grubbs per level
+        const grubbsResults = useMemo(() => {
+          return LEVELS.reduce((a, l) => {
+            const validRuns = runs[l].filter(
+              (v) => v !== '' && !isNaN(parseFloat(v)),
+            );
+            if (validRuns.length < 4) return { ...a, [l]: null };
+            return { ...a, [l]: grubbs(validRuns) };
+          }, {});
+        }, [runs]);
+
+        // APS bias check per level
+        const biasResults = useMemo(() => {
+          return LEVELS.reduce((a, l) => {
+            const s = stats[l];
+            const p = prevStats[l];
+            if (
+              !apsData ||
+              s.mean === null ||
+              p.mean === '' ||
+              isNaN(parseFloat(p.mean))
+            )
+              return { ...a, [l]: null };
+            return {
+              ...a,
+              [l]: apsBiasCheck(
+                parseFloat(p.mean),
+                s.mean,
+                apsData,
+                selectedUnit,
+              ),
+            };
+          }, {});
+        }, [stats, prevStats, apsData, selectedUnit]);
+
+        const cvLimit = parseFloat(meta.cvThreshold) || 5;
+
+        const allFilled = LEVELS.every(
+          (l) =>
+            runs[l].filter((v) => v !== '' && !isNaN(parseFloat(v))).length >=
+            4,
+        );
+        const hasPrevData = LEVELS.some(
+          (l) =>
+            prevStats[l].mean !== '' && !isNaN(parseFloat(prevStats[l].mean)),
+        );
+
+        // Overall verdict
+        const overallVerdict = useMemo(() => {
+          const results = LEVELS.map((l) => {
+            const s = stats[l];
+            const bias = biasResults[l];
+            const cv = s.mean !== null ? cvStatus(s.cv, cvLimit) : null;
+            const biasPass = bias ? bias.pass : null;
+            const biasReview = bias ? bias.conversionWarning : false;
+            return { level: l, cv, biasPass, biasReview };
+          }).filter((r) => stats[r.level].mean !== null);
+
+          const anyFail = results.some(
+            (r) => r.cv === 'fail' || r.biasPass === false,
+          );
+          const anyWarn = results.some((r) => r.cv === 'warn' || r.biasReview);
+          const allPass = results.every(
+            (r) =>
+              (r.cv === null || r.cv === 'pass') &&
+              (r.biasPass === null || r.biasPass) &&
+              !r.biasReview,
+          );
+          return anyFail ? 'FAIL' : allPass && !anyWarn ? 'PASS' : 'REVIEW';
+        }, [stats, biasResults, cvLimit]);
+
+        const reportReviewMessages = useMemo(() => {
+          const testedLevels = LEVELS.filter((l) => stats[l].n > 0);
+          const messages = [];
+
+          const cvWarningLevels = testedLevels.filter(
+            (l) => cvStatus(stats[l].cv, cvLimit) === 'warn',
+          );
+          if (cvWarningLevels.length) {
+            messages.push(
+              `• %CV exceeds the laboratory threshold but remains <10% at ${cvWarningLevels.join(', ')} — review precision and monitor closely during QC re-establishment.`,
+            );
+          }
+
+          const unitReviewLevels = testedLevels.filter(
+            (l) => biasResults[l] && biasResults[l].conversionWarning,
+          );
+          if (unitReviewLevels.length) {
+            messages.push(
+              `• APS bias could not be automatically assessed at ${unitReviewLevels.join(', ')} because the selected unit is not convertible to the APS unit — enter a compatible unit or review bias manually.`,
+            );
+          }
+
+          const missingPrevLevels = testedLevels.filter(
+            (l) =>
+              apsData &&
+              (prevStats[l].mean === '' || isNaN(parseFloat(prevStats[l].mean))),
+          );
+          if (missingPrevLevels.length) {
+            messages.push(
+              `• Previous lot mean was not entered for ${missingPrevLevels.join(', ')} — APS bias check could not be completed for those level(s).`,
+            );
+          }
+
+          if (
+            testedLevels.length &&
+            !apsData &&
+            meta.selectedAnalyte === 'Manual entry'
+          ) {
+            messages.push(
+              '• Manual APS criteria are incomplete — enter the absolute limit, cutover concentration, and high-concentration % limit to enable APS bias assessment.',
+            );
+          }
+
+          if (!messages.length) {
+            messages.push(
+              '• One or more criteria require senior scientist review before final lot acceptance.',
+            );
+          }
+
+          messages.push(
+            '• Continue QC monitoring closely and document any observed shifts or trends.',
+          );
+          return messages;
+        }, [stats, biasResults, cvLimit, apsData, prevStats, meta.selectedAnalyte]);
+
+        const S = {
+          card: {
+            background: C.card,
+            border: `1px solid ${C.border}`,
+            borderRadius: 12,
+            padding: 28,
+            marginBottom: 24,
+          },
+          inp: {
+            width: '100%',
+            background: C.surface,
+            border: `1px solid ${C.border}`,
+            borderRadius: 10,
+            padding: '12px 14px',
+            color: C.text,
+            fontSize: 15,
+            fontFamily: 'inherit',
+            transition: 'border-color 0.15s',
+          },
+          sel: {
+            width: '100%',
+            background: C.surface,
+            border: `1px solid ${C.border}`,
+            borderRadius: 10,
+            padding: '12px 14px',
+            color: C.text,
+            fontSize: 15,
+            fontFamily: 'inherit',
+            cursor: 'pointer',
+          },
+          lbl: {
+            display: 'block',
+            fontSize: 13,
+            letterSpacing: 0,
+            textTransform: 'none',
+            color: C.muted,
+            fontWeight: 700,
+            marginBottom: 8,
+          },
+          sec: {
+            fontSize: 15,
+            letterSpacing: 0.2,
+            textTransform: 'none',
+            color: C.accent,
+            fontWeight: 700,
+            marginBottom: 18,
+          },
+          sbox: {
+            background: C.surface,
+            border: `1px solid ${C.border}`,
+            borderRadius: 9,
+            padding: '12px 16px',
+            textAlign: 'center',
+          },
+          g2: {
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+            gap: 18,
+          },
+          g3: {
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+            gap: 14,
+          },
+        };
+        const btnStyle = (v = 'primary') => ({
+          padding: '12px 22px',
+          borderRadius: 10,
+          cursor: 'pointer',
+          fontSize: 14,
+          fontWeight: 700,
+          letterSpacing: 0,
+          textTransform: 'none',
+          fontFamily: 'inherit',
+          transition: 'opacity 0.15s',
+          background:
+            v === 'primary'
+              ? C.accent
+              : v === 'danger'
+                ? '#7f1d1d'
+                : v === 'ghost'
+                  ? 'transparent'
+                  : C.surface,
+          color:
+            v === 'primary'
+              ? '#06111d'
+              : v === 'danger'
+                ? '#fff'
+              : v === 'ghost'
+                ? C.muted
+                : C.text,
+          border:
+            v === 'primary' || v === 'danger'
+              ? 'none'
+              : `1px solid ${C.border}`,
+        });
+
+        const badge = (status, label) => {
+          const colors = {
+            pass: { bg: '#0e3d2a', color: C.green, border: '#1a6040' },
+            fail: { bg: C.redBg, color: C.red, border: C.redBorder },
+            warn: { bg: C.yellowBg, color: C.yellow, border: C.yellowBorder },
+          };
+          const c = colors[status] || colors.warn;
+          return h(
+            'span',
+            {
+              style: {
+                display: 'inline-block',
+                padding: '2px 10px',
+                borderRadius: 20,
+                fontSize: 11,
+                fontWeight: 700,
+                letterSpacing: 0,
+                marginLeft: 8,
+                background: c.bg,
+                color: c.color,
+                border: `1px solid ${c.border}`,
+              },
+            },
+            label,
+          );
+        };
+
+        const exportCSV = () => {
+          const rows = [
+            ['Reagent Lot Verification Report — RCPAQAP APS'],
+            ['Analyte', meta.analyte, 'Instrument', meta.instrument],
+            ['New Lot', meta.newLot, 'Previous Lot', meta.prevLot],
+            [
+              'New Lot Expiration',
+              meta.newLotExpiry || '—',
+              'Previous Lot Expiration',
+              meta.prevLotExpiry || '—',
+            ],
+            ['Scientist', meta.analyst, 'Date', meta.date],
+            ['Units', selectedUnit || '—', '%CV Threshold', `≤${cvLimit}%`],
+            ['Overall Verdict', overallVerdict],
+            [],
+            [
+              'Level',
+              'Run 1',
+              'Run 2',
+              'Run 3',
+              'Run 4',
+              'Run 5',
+              'Outlier Excluded',
+              'Outlier Reason',
+              'N Used',
+              `Mean (New)${selectedUnit ? ' ' + selectedUnit : ''}`,
+              `SD (New)${selectedUnit ? ' ' + selectedUnit : ''}`,
+              '%CV (New)',
+              `Mean (Prev)${selectedUnit ? ' ' + selectedUnit : ''}`,
+              `SD (Prev)${selectedUnit ? ' ' + selectedUnit : ''}`,
+              '%CV (Prev)',
+              'APS Bias Limit',
+              `Bias Diff${selectedUnit ? ' ' + selectedUnit : ''}`,
+              'Bias Pass',
+              'CV Status',
+            ],
+            ...LEVELS.map((l) => {
+              const s = stats[l],
+                p = prevStats[l],
+                b = biasResults[l],
+                g = grubbsResults[l];
+              const excl =
+                excludedOutliers[l] !== null
+                  ? `Run ${excludedOutliers[l] + 1}`
+                  : 'None';
+              return [
+                l,
+                ...runs[l],
+                excl,
+                outlierReasons[l] || '—',
+                s.n,
+                fmt(s.mean),
+                fmt(s.sd),
+                fmt(s.cv, 2),
+                p.mean || '—',
+                p.sd || '—',
+                p.cv || '—',
+                b ? b.limitType : '—',
+                b ? fmt(b.diff) : '—',
+                b
+                  ? b.conversionWarning
+                    ? 'REVIEW'
+                    : b.pass
+                      ? 'PASS'
+                      : 'FAIL'
+                  : '—',
+                s.mean !== null ? cvStatusLabel(cvStatus(s.cv, cvLimit)) : '—',
+              ];
+            }),
+            [],
+            ['Notes', meta.notes],
+          ];
+          const csv = rows
+            .map((r) =>
+              r
+                .map((v) => `"${String(v || '').replace(/"/g, '""')}"`)
+                .join(','),
+            )
+            .join('\n');
+          const a = document.createElement('a');
+          a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+          a.download = `${meta.analyte || 'reagent'}_${meta.newLot || 'lot'}_verification.csv`;
+          a.click();
+        };
+
+        // ── RENDER ──────────────────────────────────────────────
+        return h(
+          'div',
+          { style: { minHeight: '100vh', background: C.bg, color: C.text } },
+
+          // LabSight nav
+          h(
+            'nav',
+            {
+              className: 'no-print',
+              style: {
+                position: 'sticky',
+                top: 0,
+                zIndex: 20,
+                background: 'rgba(4, 8, 20, 0.94)',
+                backdropFilter: 'blur(14px)',
+                borderBottom: `1px solid ${C.border}`,
+              },
+            },
+            h(
+              'div',
+              {
+                className: 'labsight-nav-inner',
+                style: {
+                  maxWidth: 1280,
+                  margin: '0 auto',
+                  padding: '16px 40px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 24,
+                },
+              },
+              h(
+                'div',
+                {
+                  style: {
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 12,
+                    color: C.text,
+                    fontWeight: 700,
+                    letterSpacing: 0.4,
+                  },
+                },
+                h('img', {
+                  src: '/labsight_logo.svg',
+                  alt: 'LabSight logo',
+                  style: {
+                    height: 38,
+                    width: 'auto',
+                    display: 'block',
+                    filter: 'brightness(1.15) contrast(1.05)',
+                  },
+                }),
+                h('span', null, 'LabSight'),
+              ),
+              h(
+                'div',
+                {
+                  className: 'labsight-nav-links',
+                  style: {
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 10,
+                    flexWrap: 'wrap',
+                    justifyContent: 'flex-end',
+                  },
+                },
+                h(
+                  'a',
+                  {
+                    href: '/',
+                    style: {
+                      color: C.muted,
+                      textDecoration: 'none',
+                      fontSize: 14,
+                      fontWeight: 700,
+                      letterSpacing: 0,
+                      textTransform: 'none',
+                      padding: '9px 12px',
+                      borderRadius: 9,
+                    },
+                  },
+                  'Home',
+                ),
+                h(
+                  'a',
+                  {
+                    href: '/downloads',
+                    style: {
+                      color: C.muted,
+                      textDecoration: 'none',
+                      fontSize: 14,
+                      fontWeight: 700,
+                      letterSpacing: 0,
+                      textTransform: 'none',
+                      padding: '9px 12px',
+                      borderRadius: 9,
+                    },
+                  },
+                  'Downloads',
+                ),
+                h(
+                  'a',
+                  {
+                    href: '/downloads',
+                    style: {
+                      color: '#06111d',
+                      background: '#7cf7d4',
+                      textDecoration: 'none',
+                      fontSize: 14,
+                      fontWeight: 800,
+                      letterSpacing: 0,
+                      textTransform: 'none',
+                      padding: '10px 14px',
+                      borderRadius: 999,
+                    },
+                  },
+                  'Free tools',
+                ),
+              ),
+            ),
+          ),
+
+          // Tool title
+          h(
+            'div',
+            {
+              className: 'no-print verifier-title-shell',
+              style: {
+                maxWidth: 1280,
+                margin: '0 auto',
+                padding: '34px 40px 6px',
+              },
+            },
+            h(
+              'div',
+              {
+                className: 'verifier-title-card',
+                style: {
+                  background: C.card,
+                  border: `1px solid ${C.border}`,
+                  borderRadius: 16,
+                  padding: '28px 32px',
+                },
+              },
+              h(
+                'h1',
+                {
+                  style: {
+                    margin: 0,
+                    fontSize: 28,
+                    lineHeight: 1.15,
+                    fontWeight: 700,
+                    letterSpacing: 0.2,
+                  },
+                },
+                'New Reagent Lot Verification',
+              ),
+              h(
+                'p',
+                {
+                  style: {
+                    margin: '10px 0 0',
+                    maxWidth: 820,
+                    fontSize: 16,
+                    lineHeight: 1.7,
+                    color: C.muted,
+                  },
+                },
+                'RCPAQAP APS · Bias + CV + Grubbs · Investigation Pathway',
+              ),
+            ),
+          ),
+
+          // Stepper
+          h(
+            'div',
+            {
+              className: 'no-print verifier-stepper',
+              style: {
+                display: 'flex',
+                maxWidth: 1280,
+                margin: '0 auto',
+                padding: '26px 40px 0',
+              },
+            },
+            ...['1. Setup & APS', '2. Data Entry', '3. Report & Actions'].map(
+              (s, i) =>
+                h(
+                  'div',
+                  {
+                    key: s,
+                    onClick: () => step > i && setStep(i),
+                    style: {
+                      flex: 1,
+                      textAlign: 'center',
+                      padding: '10px 0',
+                      minWidth: 180,
+                      fontSize: 14,
+                      letterSpacing: 0,
+                      textTransform: 'none',
+                      color:
+                        step === i ? C.accent : step > i ? C.green : C.muted,
+                      borderBottom: `2px solid ${step === i ? C.accent : step > i ? C.green : C.border}`,
+                      fontWeight: step === i ? 700 : 400,
+                      cursor: step > i ? 'pointer' : 'default',
+                    },
+                  },
+                  s,
+                ),
+            ),
+          ),
+
+          h(
+            'div',
+            {
+              className: 'verifier-main',
+              style: {
+                maxWidth: 1280,
+                margin: '0 auto',
+                padding: '32px 40px 72px',
+              },
+            },
+
+            // ════════════════════════════════════════
+            // STEP 0 — SETUP
+            // ════════════════════════════════════════
+            step === 0 &&
+              h(
+                'div',
+                null,
+
+                // Details card
+                h(
+                  'div',
+                  { style: S.card },
+                  h('div', { style: S.sec }, 'Experiment Details'),
+                  h(
+                    'div',
+                    { style: { ...S.g2, marginBottom: 16 } },
+                    h(
+                      'div',
+                      { key: 'analyte' },
+                      h('label', { style: S.lbl }, 'Analyte / Test Name *'),
+                      h(
+                        'select',
+                        {
+                          style: S.sel,
+                          value:
+                            meta.selectedAnalyte === 'Manual entry'
+                              ? 'Manual entry'
+                              : meta.analyte,
+                          onChange: (e) => selectAnalyte(e.target.value),
+                        },
+                        h('option', { value: '' }, '— Select analyte —'),
+                        ...SORTED_APS_ANALYTES.map((a) =>
+                          h('option', { key: a, value: a }, a),
+                        ),
+                        h('option', { value: 'Manual entry' }, 'Manual entry'),
+                      ),
+                      meta.selectedAnalyte === 'Manual entry' &&
+                        h('input', {
+                          style: { ...S.inp, marginTop: 8 },
+                          type: 'text',
+                          value: meta.analyte,
+                          placeholder: 'Enter analyte / test name',
+                          onChange: (e) => setManualAnalyte(e.target.value),
+                        }),
+                    ),
+                    ...[
+                      [
+                        'Instrument / Platform *',
+                        'instrument',
+                        'e.g. Cobas e801',
+                        'text',
+                      ],
+                      ['New Lot Number *', 'newLot', 'New reagent lot', 'text'],
+                      [
+                        'Previous Lot Number *',
+                        'prevLot',
+                        'Previous reagent lot',
+                        'text',
+                      ],
+                      ['New Lot Expiration Date', 'newLotExpiry', '', 'date'],
+                      [
+                        'Previous Lot Expiration Date',
+                        'prevLotExpiry',
+                        '',
+                        'date',
+                      ],
+                      ['Units', 'units', 'Select units', 'select'],
+                      [
+                        '%CV Acceptance Threshold',
+                        'cvThreshold',
+                        'e.g. 5',
+                        'number',
+                      ],
+	                      ['Scientist *', 'analyst', 'Your name', 'text'],
+                      [
+                        'Reviewer / Senior Scientist',
+                        'reviewer',
+                        'Reviewer name',
+                        'text',
+                      ],
+                      ['Date', 'date', '', 'date'],
+                    ].map(([label, field, ph, type]) =>
+                      h(
+                        'div',
+                        { key: field },
+                        h('label', { style: S.lbl }, label),
+                        field === 'units'
+                          ? h(
+                              'select',
+                              {
+                                style: S.sel,
+                                value: meta.units,
+                                onChange: (e) => setMF('units', e.target.value),
+                              },
+                              ...UNIT_OPTIONS.map((u) =>
+                                h(
+                                  'option',
+                                  { key: u || 'blank', value: u },
+                                  u || '— Select units —',
+                                ),
+                              ),
+                            )
+                          : h('input', {
+                              style: S.inp,
+                              type,
+                              value: meta[field],
+                              placeholder: ph,
+                              onChange: (e) => setMF(field, e.target.value),
+                            }),
+                      ),
+                    ),
+                  ),
+                ),
+
+                // APS selector card
+                h(
+                  'div',
+                  { style: S.card },
+                  h(
+                    'div',
+                    { style: S.sec },
+                    'RCPAQAP APS — Acceptance Criteria',
+                  ),
+                  h(
+                    'p',
+                    {
+                      style: {
+                        color: C.muted,
+                        fontSize: 15,
+                        marginBottom: 20,
+                        lineHeight: 1.7,
+                      },
+                    },
+                    "Select the analyte to auto-load RCPAQAP Dec 2022 APS limits. These define the maximum allowable bias between old and new lot. Select 'Manual entry' to define your own limits.",
+                  ),
+                  h(
+                    'div',
+                    { style: { marginBottom: 16 } },
+                    h('label', { style: S.lbl }, 'Select Analyte'),
+                    h(
+                      'select',
+                      {
+                        style: S.sel,
+                        value: meta.selectedAnalyte,
+                        onChange: (e) => selectAnalyte(e.target.value),
+                      },
+                      h('option', { value: '' }, '— Select an analyte —'),
+                      ...SORTED_APS_ANALYTES.map((a) =>
+                        h('option', { key: a, value: a }, a),
+                      ),
+                      h('option', { value: 'Manual entry' }, 'Manual entry'),
+                    ),
+                  ),
+
+                  // Show loaded APS
+                  meta.selectedAnalyte &&
+                    meta.selectedAnalyte !== 'Manual entry' &&
+                    apsData &&
+                    h(
+                      'div',
+                      {
+                        style: {
+                          background: C.accentSoft,
+                          border: `1px solid ${C.accent}33`,
+                          borderRadius: 9,
+                          padding: '14px 18px',
+                          marginBottom: 16,
+                        },
+                      },
+                      h(
+                        'div',
+                        {
+                          style: {
+                            fontSize: 14,
+                            color: C.accent,
+                            letterSpacing: 0,
+                            textTransform: 'none',
+                            marginBottom: 10,
+                          },
+                        },
+                        'APS Loaded — ' + meta.selectedAnalyte,
+                      ),
+                      apsConversionText &&
+                        h(
+                          'div',
+                          {
+                            style: {
+                              color: C.yellow,
+                              fontSize: 14,
+                              marginBottom: 10,
+                            },
+                          },
+                          apsConversionText,
+                        ),
+                      apsData &&
+                        apsUnit &&
+                        selectedUnit &&
+                        apsUnit !== selectedUnit &&
+                        apsToSelectedFactor === null &&
+                        h(
+                          'div',
+                          {
+                            style: {
+                              color: C.red,
+                              fontSize: 14,
+                              marginBottom: 10,
+                            },
+                          },
+                          `Selected unit ${selectedUnit} is not convertible from APS unit ${apsUnit}. Bias status will require manual review.`,
+                        ),
+                      h(
+                        'div',
+                        {
+                          style: {
+                            display: 'flex',
+                            gap: 24,
+                            flexWrap: 'wrap',
+                            fontSize: 15,
+                          },
+                        },
+                        h(
+                          'span',
+                          null,
+                          h(
+                            'span',
+                            { style: { color: C.muted } },
+                            'Below ' +
+                              conciseNumber(apsLowerConcDisplay) +
+                              ' ' +
+                              formatUnitLabel(apsDisplayUnit) +
+                              ': ',
+                          ),
+                          `± ${conciseNumber(apsLowerAbsDisplay)} ${formatUnitLabel(apsDisplayUnit)}`,
+                        ),
+                        apsData.upperPct &&
+                          h(
+                            'span',
+                            null,
+                            h(
+                              'span',
+                              { style: { color: C.muted } },
+                              'Above ' +
+                                conciseNumber(apsLowerConcDisplay) +
+                                ' ' +
+                                formatUnitLabel(apsDisplayUnit) +
+                                ': ',
+                            ),
+                            `± ${apsData.upperPct}%`,
+                          ),
+                        apsData.fixedLimit &&
+                          h(
+                            'span',
+                            null,
+                            h(
+                              'span',
+                              { style: { color: C.muted } },
+                              'Fixed limit: ',
+                            ),
+                            `± ${conciseNumber(apsFixedLimitDisplay)} ${formatUnitLabel(apsDisplayUnit)}`,
+                          ),
+                        h(
+                          'span',
+                          null,
+                          h('span', { style: { color: C.muted } }, 'Basis: '),
+                          apsData.basis,
+                        ),
+                        apsData.level &&
+                          h(
+                            'span',
+                            null,
+                            h('span', { style: { color: C.muted } }, 'Level: '),
+                            apsData.level,
+                          ),
+                      ),
+                    ),
+
+                  // Manual entry fields
+                  (meta.selectedAnalyte === 'Manual entry' ||
+                    !meta.selectedAnalyte) &&
+                    h(
+                      'div',
+                      null,
+                      h(
+                        'p',
+                        {
+                          style: {
+                            color: C.yellow,
+                            fontSize: 12,
+                            marginBottom: 12,
+                          },
+                        },
+                        '⚠ Manual APS entry — enter your laboratory-defined acceptance limits below.',
+                      ),
+                      h(
+                        'div',
+                        {
+                          style: {
+                            display: 'grid',
+                            gridTemplateColumns: '1fr 1fr 1fr',
+                            gap: 12,
+                          },
+                        },
+                        ...[
+                          [
+                            `Absolute limit (low conc${selectedUnit ? ' ' + selectedUnit : ''})`,
+                            'manualApsLower',
+                            'e.g. 3',
+                          ],
+                          [
+                            `Cutover concentration${selectedUnit ? ' ' + selectedUnit : ''}`,
+                            'manualApsLowerConc',
+                            'e.g. 150',
+                          ],
+                          [
+                            '% limit (high conc)',
+                            'manualApsUpperPct',
+                            'e.g. 2',
+                          ],
+                        ].map(([lbl, f, ph]) =>
+                          h(
+                            'div',
+                            { key: f },
+                            h('label', { style: S.lbl }, lbl),
+                            h('input', {
+                              style: S.inp,
+                              type: 'number',
+                              step: 'any',
+                              value: meta[f],
+                              placeholder: ph,
+                              onChange: (e) => setMF(f, e.target.value),
+                            }),
+                          ),
+                        ),
+                      ),
+                    ),
+                ),
+
+                // Previous lot stats
+                h(
+                  'div',
+                  { style: S.card },
+                  h('div', { style: S.sec }, 'Previous Lot QC Statistics'),
+                  h(
+                    'p',
+                    {
+                      style: { color: C.muted, fontSize: 12, marginBottom: 20 },
+                    },
+                    'Enter the established mean, SD, and %CV from the previous lot. These are used for the APS bias check and lot-to-lot comparison.',
+                  ),
+                  ...LEVELS.map((lvl) =>
+                    h(
+                      'div',
+                      { key: lvl, style: { marginBottom: 20 } },
+                      h(
+                        'div',
+                        {
+                          style: {
+                            fontSize: 12,
+                            color: C.accent,
+                            fontWeight: 700,
+                            marginBottom: 10,
+                          },
+                        },
+                        lvl,
+                      ),
+                      h(
+                        'div',
+                        { style: S.g3 },
+                        ...['mean', 'sd', 'cv'].map((f) =>
+                          h(
+                            'div',
+                            { key: f },
+                            h(
+                              'label',
+                              { style: S.lbl },
+                              f === 'mean'
+                                ? selectedUnit
+                                  ? 'Mean (' + selectedUnit + ')'
+                                  : 'Mean'
+                                : f === 'sd'
+                                  ? selectedUnit
+                                    ? 'SD (' + selectedUnit + ')'
+                                    : 'SD'
+                                  : '%CV',
+                            ),
+                            h('input', {
+                              style: S.inp,
+                              type: 'number',
+                              step: 'any',
+                              value: prevStats[lvl][f],
+                              placeholder: `Prev ${f.toUpperCase()}`,
+                              onChange: (e) =>
+                                setPrevStats((p) => ({
+                                  ...p,
+                                  [lvl]: { ...p[lvl], [f]: e.target.value },
+                                })),
+                            }),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+
+                h(
+                  'div',
+                  { style: { display: 'flex', justifyContent: 'flex-end' } },
+                  h(
+                    'button',
+                    {
+                      style: {
+                        ...btnStyle('primary'),
+                        opacity:
+                          !meta.analyte ||
+                          !meta.newLot ||
+                          !meta.prevLot ||
+                          !meta.analyst
+                            ? 0.4
+                            : 1,
+                      },
+                      disabled:
+                        !meta.analyte ||
+                        !meta.newLot ||
+                        !meta.prevLot ||
+                        !meta.analyst,
+                      onClick: () => setStep(1),
+                    },
+                    'Next: Enter Run Data →',
+                  ),
+                ),
+              ),
+
+            // ════════════════════════════════════════
+            // STEP 1 — DATA ENTRY
+            // ════════════════════════════════════════
+            step === 1 &&
+              h(
+                'div',
+                null,
+                h(
+                  'div',
+                  {
+                    className: 'no-print',
+                    style: { display: 'flex', gap: 8, marginBottom: 20 },
+                  },
+                  ...LEVELS.map((l) => {
+                    const hasData =
+                      runs[l].filter((v) => v !== '' && !isNaN(parseFloat(v)))
+                        .length >= 4;
+                    const s = stats[l];
+                    const b = biasResults[l];
+                    const cv = s.mean !== null ? cvStatus(s.cv, cvLimit) : null;
+                    const biasOk = b ? b.pass : true;
+                    const biasReview = b ? b.conversionWarning : false;
+                    const status = hasData
+                      ? biasOk === false || cv === 'fail'
+                        ? 'fail'
+                        : cv === 'warn' || biasReview
+                          ? 'warn'
+                          : cv === 'pass' && biasOk
+                            ? 'pass'
+                            : null
+                      : null;
+                    return h(
+                      'button',
+                      {
+                        key: l,
+                        onClick: () => setActiveLevel(l),
+                        style: {
+                          padding: '10px 18px',
+                          borderRadius: 10,
+                          fontFamily: 'inherit',
+                          cursor: 'pointer',
+                          fontSize: 14,
+                          fontWeight: 700,
+                          letterSpacing: 0,
+                          textTransform: 'none',
+                          border: `1px solid ${activeLevel === l ? C.accent : C.border}`,
+                          background:
+                            activeLevel === l ? C.accentSoft : 'transparent',
+                          color: activeLevel === l ? C.accent : C.muted,
+                        },
+                      },
+                      l.split(' ')[0] + ' ' + l.split(' ')[1],
+                      status === 'pass' &&
+                        h(
+                          'span',
+                          { style: { marginLeft: 6, color: C.green } },
+                          '✓',
+                        ),
+                      status === 'fail' &&
+                        h(
+                          'span',
+                          { style: { marginLeft: 6, color: C.red } },
+                          '✗',
+                        ),
+                      status === 'warn' &&
+                        h(
+                          'span',
+                          { style: { marginLeft: 6, color: C.yellow } },
+                          '⚠',
+                        ),
+                    );
+                  }),
+                ),
+
+                h(
+                  'div',
+                  { style: S.card },
+                  h(
+                    'div',
+                    {
+                      style: {
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginBottom: 20,
+                      },
+                    },
+                    h('div', { style: S.sec }, `${activeLevel} — New Lot Runs`),
+                    h(
+                      'span',
+                      { style: { color: C.muted, fontSize: 14 } },
+                      `${meta.analyte} · Lot ${meta.newLot}`,
+                    ),
+                  ),
+
+                  // Run inputs
+                  h(
+                    'div',
+                    {
+                      style: {
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(5,1fr)',
+                        gap: 10,
+                        marginBottom: 16,
+                      },
+                    },
+                    ...Array(N_RUNS)
+                      .fill(null)
+                      .map((_, i) => {
+                        const isExcluded = excludedOutliers[activeLevel] === i;
+                        const g = grubbsResults[activeLevel];
+                        const isFlagged =
+                          g &&
+                          g.isOutlier &&
+                          g.idx === i &&
+                          excludedOutliers[activeLevel] === null;
+                        return h(
+                          'div',
+                          { key: i },
+                          h(
+                            'label',
+                            {
+                              style: {
+                                ...S.lbl,
+                                color: isExcluded
+                                  ? C.red
+                                  : isFlagged
+                                    ? C.yellow
+                                    : C.muted,
+                              },
+                            },
+                            `Run ${i + 1}`,
+                            isExcluded ? ' [EXCL]' : isFlagged ? ' [?]' : '',
+                          ),
+                          h('input', {
+                            style: {
+                              ...S.inp,
+                              textAlign: 'right',
+                              fontSize: 15,
+                              opacity: isExcluded ? 0.35 : 1,
+                              borderColor: isExcluded
+                                ? C.red
+                                : isFlagged
+                                  ? C.yellow
+                                  : C.border,
+                              background: isExcluded
+                                ? '#2a0f0f'
+                                : isFlagged
+                                  ? C.yellowBg
+                                  : C.surface,
+                            },
+                            type: 'number',
+                            step: 'any',
+                            value: runs[activeLevel][i],
+                            placeholder: '—',
+                            disabled: isExcluded,
+                            onChange: (e) => {
+                              const u = [...runs[activeLevel]];
+                              u[i] = e.target.value;
+                              setRuns((p) => ({ ...p, [activeLevel]: u }));
+                            },
+                          }),
+                        );
+                      }),
+                  ),
+
+                  // Grubbs panel
+                  grubbsResults[activeLevel] &&
+                    grubbsResults[activeLevel].isOutlier &&
+                    h(
+                      'div',
+                      {
+                        style: {
+                          background: C.yellowBg,
+                          border: `1px solid ${C.yellowBorder}`,
+                          borderRadius: 9,
+                          padding: '14px 18px',
+                          marginBottom: 16,
+                        },
+                      },
+                      h(
+                        'div',
+                        {
+                          style: {
+                            fontSize: 14,
+                            color: C.yellow,
+                            fontWeight: 700,
+                            letterSpacing: 0,
+                            textTransform: 'none',
+                            marginBottom: 8,
+                          },
+                        },
+                        '⚠ Grubbs Outlier Detected',
+                      ),
+                      h(
+                        'div',
+                        {
+                          style: {
+                            fontSize: 14,
+                            color: C.text,
+                            marginBottom: 10,
+                          },
+                        },
+                        `Run ${grubbsResults[activeLevel].idx + 1} (value: ${fmt(grubbsResults[activeLevel].value, 3)}) — G = ${fmt(grubbsResults[activeLevel].G, 3)} exceeds critical value of ${GRUBBS_CRITICAL_N5} (n=5, p<0.05).`,
+                      ),
+                      excludedOutliers[activeLevel] === null
+                        ? h(
+                            'div',
+                            null,
+                            h(
+                              'div',
+                              { style: { marginBottom: 8 } },
+                              h(
+                                'label',
+                                { style: { ...S.lbl, color: C.muted } },
+                                'Reason for exclusion (required before excluding)',
+                              ),
+                              h('input', {
+                                style: S.inp,
+                                value: outlierReasons[activeLevel],
+                                placeholder:
+                                  'e.g. pipetting error, bubble observed in cuvette...',
+                                onChange: (e) =>
+                                  setOutlierReasons((p) => ({
+                                    ...p,
+                                    [activeLevel]: e.target.value,
+                                  })),
+                              }),
+                            ),
+                            h(
+                              'div',
+                              {
+                                style: {
+                                  display: 'flex',
+                                  gap: 10,
+                                  marginTop: 10,
+                                },
+                              },
+                              h(
+                                'button',
+                                {
+                                  style: {
+                                    ...btnStyle('danger'),
+                                    opacity: !outlierReasons[activeLevel]
+                                      ? 0.4
+                                      : 1,
+                                  },
+                                  disabled: !outlierReasons[activeLevel],
+                                  onClick: () =>
+                                    setExcludedOutliers((p) => ({
+                                      ...p,
+                                      [activeLevel]:
+                                        grubbsResults[activeLevel].idx,
+                                    })),
+                                },
+                                'Exclude Run ' +
+                                  (grubbsResults[activeLevel].idx + 1),
+                              ),
+                              h(
+                                'button',
+                                {
+                                  style: btnStyle('secondary'),
+                                  onClick: () =>
+                                    setOutlierReasons((p) => ({
+                                      ...p,
+                                      [activeLevel]: '',
+                                    })),
+                                },
+                                'Keep All Runs',
+                              ),
+                            ),
+                          )
+                        : h(
+                            'div',
+                            {
+                              style: {
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                              },
+                            },
+                            h(
+                              'div',
+                              { style: { fontSize: 12, color: C.green } },
+                              '✓ Outlier excluded — ' +
+                                outlierReasons[activeLevel],
+                            ),
+                            h(
+                              'button',
+                              {
+                                style: { ...btnStyle('ghost'), fontSize: 11 },
+                                onClick: () => {
+                                  setExcludedOutliers((p) => ({
+                                    ...p,
+                                    [activeLevel]: null,
+                                  }));
+                                  setOutlierReasons((p) => ({
+                                    ...p,
+                                    [activeLevel]: '',
+                                  }));
+                                },
+                              },
+                              'Undo exclusion',
+                            ),
+                          ),
+                    ),
+
+                  // Stats summary
+                  stats[activeLevel].n > 0 &&
+                    h(
+                      'div',
+                      { style: { ...S.g3, marginBottom: 20 } },
+                      ...(() => {
+                        const s = stats[activeLevel],
+                          b = biasResults[activeLevel];
+                        const cv = cvStatus(s.cv, cvLimit);
+                        const biasPass = b ? b.pass : null;
+                        return [
+                          [
+                            `Mean${selectedUnit ? ' (' + selectedUnit + ')' : ''}`,
+                            fmt(s.mean),
+                            null,
+                            'neutral',
+                          ],
+                          [
+                            `SD${selectedUnit ? ' (' + selectedUnit + ')' : ''}`,
+                            fmt(s.sd),
+                            null,
+                            'neutral',
+                          ],
+                          ['%CV', fmt(s.cv, 2) + '%', s.cv, cv],
+                          ...(b
+                            ? [
+                                [
+                                  `Bias vs Old Lot`,
+                                  fmt(b.diff, 3) +
+                                    (b.unit ? ' ' + b.unit : '') +
+                                    (b.pctDiff !== undefined
+                                      ? ' (' + fmt(b.pctDiff, 1) + '%)'
+                                      : ''),
+                                  null,
+                                  b.conversionWarning
+                                    ? 'warn'
+                                    : b.pass
+                                      ? 'pass'
+                                      : 'fail',
+                                ],
+                              ]
+                            : []),
+                          ...(b
+                            ? [
+                                [
+                                  `APS Limit`,
+                                  b.limitType,
+                                  null,
+                                  b.conversionWarning
+                                    ? 'warn'
+                                    : b.pass
+                                      ? 'pass'
+                                      : 'fail',
+                                ],
+                              ]
+                            : []),
+                        ];
+                      })().map(([label, val, _cv, status]) =>
+                        h(
+                          'div',
+                          {
+                            key: label,
+                            style: {
+                              ...S.sbox,
+                              border: `1px solid ${status === 'fail' ? C.redBorder : status === 'warn' ? C.yellowBorder : status === 'pass' ? C.greenBorder : C.border}`,
+                              gridColumn: label.startsWith('APS')
+                                ? 'span 2'
+                                : 'span 1',
+                            },
+                          },
+                          h(
+                            'div',
+                            {
+                              style: {
+                                fontSize:
+                                  status === 'pass' ||
+                                  status === 'warn' ||
+                                  status === 'fail'
+                                    ? 14
+                                    : 18,
+                                fontWeight: 700,
+                                lineHeight: 1.2,
+                                color:
+                                  status === 'fail'
+                                    ? C.red
+                                    : status === 'warn'
+                                      ? C.yellow
+                                      : status === 'pass'
+                                        ? C.green
+                                        : C.text,
+                                wordBreak: 'break-word',
+                              },
+                            },
+                            val,
+                          ),
+                          h(
+                            'div',
+                            {
+                              style: {
+                                fontSize: 13,
+                                color: C.muted,
+                                letterSpacing: 0,
+                                textTransform: 'none',
+                                marginTop: 4,
+                              },
+                            },
+                            label,
+                            status !== 'neutral' &&
+                              badge(status, cvStatusLabel(status)),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                  // LJ Chart
+                  h(
+                    'div',
+                    {
+                      style: {
+                        fontSize: 14,
+                        color: C.muted,
+                        letterSpacing: 0,
+                        marginBottom: 10,
+                      },
+                    },
+                    'Levey-Jennings - ' + activeLevel,
+                  ),
+	                  h(LJChart, {
+	                    runs: runs[activeLevel],
+	                    mean: stats[activeLevel].mean,
+	                    sd: stats[activeLevel].sd,
+	                    prevMean: prevStats[activeLevel].mean,
+	                  }),
+                  h(
+                    'div',
+                    {
+                      style: {
+                        display: 'flex',
+                        gap: 20,
+                        marginTop: 8,
+                        fontSize: 13,
+                        color: C.muted,
+                      },
+                    },
+                    h('span', null, '— Mean'),
+                    h('span', { style: { color: C.green } }, '— ±1SD'),
+	                    h('span', { style: { color: C.yellow } }, '— ±2SD'),
+	                    h('span', { style: { color: C.red } }, '— ±3SD'),
+	                    h(
+	                      'span',
+	                      { style: { color: '#a78bfa' } },
+	                      '·· Prev Mean',
+	                    ),
+	                  ),
+                ),
+
+                h(
+                  'div',
+                  {
+                    style: { display: 'flex', justifyContent: 'space-between' },
+                  },
+                  h(
+                    'button',
+                    { style: btnStyle('ghost'), onClick: () => setStep(0) },
+                    '← Back',
+                  ),
+                  h(
+                    'button',
+                    { style: btnStyle('primary'), onClick: () => setStep(2) },
+                    'Review & Generate Report →',
+                  ),
+                ),
+              ),
+
+            // ════════════════════════════════════════
+            // STEP 2 — REPORT
+            // ════════════════════════════════════════
+            step === 2 &&
+              h(
+                'div',
+                { className: 'report-root' },
+
+                // Report header
+                h(
+                  'div',
+                  {
+                    style: { ...S.card, background: C.surface },
+                    className: 'print-card report-header',
+                  },
+                  h(
+                    'div',
+                    {
+                      style: {
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'flex-start',
+                        marginBottom: 20,
+                      },
+                    },
+                    h(
+                      'div',
+                      null,
+                      h(
+                        'div',
+                        {
+                          style: {
+                            fontSize: 20,
+                            fontWeight: 700,
+                            marginBottom: 4,
+                          },
+                        },
+                        'Reagent Lot Verification Report',
+                      ),
+                      h(
+                        'div',
+                        { style: { color: C.muted, fontSize: 13 } },
+                        `${meta.analyte}${meta.instrument ? ' · ' + meta.instrument : ''}`,
+                      ),
+                      h(
+                        'div',
+                        {
+                          style: { fontSize: 11, color: C.muted, marginTop: 4 },
+                        },
+                        'RCPAQAP Chemical Pathology APS — December 2022',
+                      ),
+                    ),
+                    h(
+                      'div',
+                      { style: { textAlign: 'right' } },
+                      // Overall verdict badge
+                      h(
+                        'div',
+                        {
+                          style: {
+                            display: 'inline-block',
+                            padding: '8px 18px',
+                            borderRadius: 10,
+                            fontSize: 14,
+                            fontWeight: 700,
+                            marginBottom: 8,
+                            background:
+                              overallVerdict === 'PASS'
+                                ? C.greenBg
+                                : overallVerdict === 'FAIL'
+                                  ? C.redBg
+                                  : C.yellowBg,
+                            color:
+                              overallVerdict === 'PASS'
+                                ? C.green
+                                : overallVerdict === 'FAIL'
+                                  ? C.red
+                                  : C.yellow,
+                            border: `1px solid ${overallVerdict === 'PASS' ? C.greenBorder : overallVerdict === 'FAIL' ? C.redBorder : C.yellowBorder}`,
+                          },
+                        },
+                        overallVerdict === 'PASS'
+                          ? '✓ LOT ACCEPTED'
+                          : overallVerdict === 'FAIL'
+                            ? '✗ LOT REJECTED'
+                            : '⚠ REQUIRES REVIEW',
+                      ),
+                      h(
+                        'div',
+                        {
+                          style: {
+                            color: C.muted,
+                            fontSize: 12,
+                            lineHeight: 1.8,
+                          },
+                        },
+                        h('div', null, meta.date),
+                        h('div', null, `Scientist: ${meta.analyst}`),
+                      ),
+                    ),
+                  ),
+                  h(
+                    'div',
+                    {
+                      style: {
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(4,1fr)',
+                        gap: 12,
+                      },
+                    },
+                    ...[
+                      ['New Lot', meta.newLot],
+                      ['New Lot Expiry', meta.newLotExpiry || '—'],
+                      ['Previous Lot', meta.prevLot],
+                      ['Prev Lot Expiry', meta.prevLotExpiry || '—'],
+                      ['Units', selectedUnit || '—'],
+                      ['%CV Threshold', `≤${cvLimit}%`],
+                      ['APS Analyte', meta.selectedAnalyte || 'Manual'],
+                      ['APS Basis', apsData ? apsData.basis : '—'],
+                    ].map(([k, v]) =>
+                      h(
+                        'div',
+                        { key: k, style: S.sbox },
+                        h(
+                          'div',
+                          { style: { fontSize: 13, fontWeight: 700 } },
+                          v,
+                        ),
+                        h(
+                          'div',
+                          {
+                            style: {
+                              fontSize: 10,
+                              color: C.muted,
+                              letterSpacing: 1.5,
+                              textTransform: 'uppercase',
+                              marginTop: 4,
+                            },
+                          },
+                          k,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+
+                // Per-level cards
+                ...LEVELS.map((lvl) => {
+                  const s = stats[lvl],
+                    p = prevStats[lvl],
+                    b = biasResults[lvl];
+                  const g = grubbsResults[lvl];
+                  const hasPrev = p.mean !== '' && !isNaN(parseFloat(p.mean));
+                  const cv = s.n > 0 ? cvStatus(s.cv, cvLimit) : null;
+                  const biasPass = b ? b.pass : null;
+                  const biasReview = b ? b.conversionWarning : false;
+                  const levelStatus =
+                    s.n === 0
+                      ? 'no-data'
+                      : cv === 'fail' || biasPass === false
+                        ? 'fail'
+                        : cv === 'warn' || biasReview
+                          ? 'warn'
+                          : cv === 'pass' && (biasPass === null || biasPass)
+                            ? 'pass'
+                            : 'warn';
+
+                  const comments =
+                    s.n > 0
+                      ? generateComments({
+                          levelName: lvl,
+                          apsBiasResult: b,
+                          cvResult:
+                            s.n > 0
+                              ? { pass: cv === 'pass', status: cv, cv: s.cv }
+                              : null,
+                          grubbsResult: g,
+                          outlierExcluded: excludedOutliers[lvl] !== null,
+                          prevStats: p,
+                          newStats: s,
+                          analyte: meta.analyte,
+                          cvThreshold: cvLimit,
+                        })
+                      : [];
+
+                  return h(
+                    'div',
+                    {
+                      key: lvl,
+                      style: {
+                        ...S.card,
+                        borderColor:
+                          levelStatus === 'fail'
+                            ? C.redBorder
+                            : levelStatus === 'warn'
+                              ? C.yellowBorder
+                              : levelStatus === 'pass'
+                                ? C.greenBorder
+                                : C.border,
+                      },
+                      className: 'print-card qc-level-page',
+                    },
+                    h(
+                      'div',
+                      {
+                        style: {
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          marginBottom: 16,
+                        },
+                      },
+                      h('div', { style: { ...S.sec, marginBottom: 0 } }, lvl),
+                      levelStatus !== 'no-data' &&
+                        badge(
+                          levelStatus === 'pass'
+                            ? 'pass'
+                            : levelStatus === 'fail'
+                              ? 'fail'
+                              : 'warn',
+                          levelStatus === 'pass'
+                            ? 'ACCEPTABLE'
+                            : levelStatus === 'fail'
+                              ? 'REQUIRES ACTION'
+                              : 'REVIEW NEEDED',
+                        ),
+                    ),
+
+                    s.n === 0
+                      ? h(
+                          'div',
+                          { style: { color: C.muted, fontSize: 12 } },
+                          'No data entered for this level.',
+                        )
+                      : h(
+                          'div',
+                          null,
+
+                          // Individual runs
+                          h(
+                            'div',
+                            { style: { marginBottom: 16 } },
+                            h(
+                              'div',
+                              {
+                                style: {
+                                  fontSize: 10,
+                                  color: C.muted,
+                                  letterSpacing: 1,
+                                  marginBottom: 8,
+                                },
+                              },
+                              'INDIVIDUAL RUNS (n=' + s.n + ')',
+                            ),
+                            h(
+                              'div',
+                              {
+                                style: {
+                                  display: 'flex',
+                                  gap: 8,
+                                  flexWrap: 'wrap',
+                                },
+                              },
+                              ...runs[lvl].map((v, i) => {
+                                const isExcl = excludedOutliers[lvl] === i;
+                                const isFl = g && g.isOutlier && g.idx === i;
+                                return h(
+                                  'div',
+                                  {
+                                    key: i,
+                                    style: {
+                                      background: isExcl
+                                        ? C.redBg
+                                        : isFl
+                                          ? C.yellowBg
+                                          : C.surface,
+                                      border: `1px solid ${isExcl ? C.redBorder : isFl ? C.yellowBorder : C.border}`,
+                                      borderRadius: 6,
+                                      padding: '6px 14px',
+                                      fontSize: 13,
+                                      opacity: isExcl ? 0.5 : 1,
+                                    },
+                                  },
+                                  h(
+                                    'span',
+                                    {
+                                      style: {
+                                        color: isExcl
+                                          ? C.red
+                                          : isFl
+                                            ? C.yellow
+                                            : C.muted,
+                                        fontSize: 10,
+                                      },
+                                    },
+                                    `R${i + 1} `,
+                                  ),
+                                  v !== '' && !isNaN(parseFloat(v))
+                                    ? fmt(parseFloat(v), 3)
+                                    : '—',
+                                  isExcl &&
+                                    h(
+                                      'span',
+                                      {
+                                        style: {
+                                          color: C.red,
+                                          fontSize: 10,
+                                          marginLeft: 4,
+                                        },
+                                      },
+                                      '[EXCL]',
+                                    ),
+                                );
+                              }),
+                            ),
+                            excludedOutliers[lvl] !== null &&
+                              h(
+                                'div',
+                                {
+                                  style: {
+                                    fontSize: 11,
+                                    color: C.yellow,
+                                    marginTop: 8,
+                                  },
+                                },
+                                `Outlier excluded — Run ${excludedOutliers[lvl] + 1}: ${outlierReasons[lvl] || 'reason not documented'}`,
+                              ),
+                          ),
+
+                          // Stats comparison
+                          h(
+                            'div',
+                            {
+                              style: {
+                                display: 'grid',
+                                gridTemplateColumns: hasPrev
+                                  ? '1fr 1fr'
+                                  : '1fr',
+                                gap: 20,
+                                marginBottom: 16,
+                              },
+                            },
+                            h(
+                              'div',
+                              null,
+                              h(
+                                'div',
+                                {
+                                  style: {
+                                    fontSize: 10,
+                                    color: C.muted,
+                                    letterSpacing: 1,
+                                    marginBottom: 8,
+                                  },
+                                },
+                                'NEW LOT STATISTICS — ' + meta.newLot,
+                              ),
+                              h(
+                                'div',
+                                { style: S.g3 },
+                                ...[
+                                  [
+                                    `Mean${selectedUnit ? ' (' + selectedUnit + ')' : ''}`,
+                                    fmt(s.mean),
+                                    null,
+                                  ],
+                                  [
+                                    `SD${selectedUnit ? ' (' + selectedUnit + ')' : ''}`,
+                                    fmt(s.sd),
+                                    null,
+                                  ],
+                                  ['%CV', fmt(s.cv, 2) + '%', cv],
+                                ].map(([k, v, pass]) =>
+                                  h(
+                                    'div',
+                                    {
+                                      key: k,
+                                      style: {
+                                        ...S.sbox,
+                                        border: `1px solid ${pass === 'fail' ? C.redBorder : pass === 'warn' ? C.yellowBorder : pass === 'pass' ? C.greenBorder : C.border}`,
+                                      },
+                                    },
+                                    h(
+                                      'div',
+                                      {
+                                        style: {
+                                          fontSize: 14,
+                                          fontWeight: 700,
+                                          color:
+                                            pass === 'fail'
+                                              ? C.red
+                                              : pass === 'warn'
+                                                ? C.yellow
+                                                : pass === 'pass'
+                                                  ? C.green
+                                                  : C.text,
+                                        },
+                                      },
+                                      v,
+                                    ),
+                                    h(
+                                      'div',
+                                      {
+                                        style: {
+                                          fontSize: 10,
+                                          color: C.muted,
+                                          letterSpacing: 1,
+                                          marginTop: 4,
+                                          textTransform: 'uppercase',
+                                        },
+                                      },
+                                      k,
+                                      pass !== null &&
+                                        badge(pass, cvStatusLabel(pass)),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+
+                            hasPrev &&
+                              h(
+                                'div',
+                                null,
+                                h(
+                                  'div',
+                                  {
+                                    style: {
+                                      fontSize: 10,
+                                      color: C.muted,
+                                      letterSpacing: 1,
+                                      marginBottom: 8,
+                                    },
+                                  },
+                                  'LOT-TO-LOT COMPARISON',
+                                ),
+                                h(
+                                  'table',
+                                  {
+                                    style: {
+                                      width: '100%',
+                                      borderCollapse: 'collapse',
+                                      fontSize: 12,
+                                    },
+                                  },
+                                  h(
+                                    'thead',
+                                    null,
+                                    h(
+                                      'tr',
+                                      null,
+                                      ...[
+                                        'Stat',
+                                        'Prev Lot',
+                                        'New Lot',
+                                        'Δ',
+                                        'Status',
+                                      ].map((col) =>
+                                        h(
+                                          'th',
+                                          {
+                                            key: col,
+                                            style: {
+                                              color: C.muted,
+                                              fontSize: 10,
+                                              padding: '4px 8px',
+                                              textAlign:
+                                                col === 'Stat'
+                                                  ? 'left'
+                                                  : 'right',
+                                              letterSpacing: 1,
+                                            },
+                                          },
+                                          col,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  h(
+                                    'tbody',
+                                    null,
+                                    ...(() => {
+                                      const rows = [
+                                        ['Mean', s.mean, parseFloat(p.mean)],
+                                        ['SD', s.sd, parseFloat(p.sd)],
+                                        ['%CV', s.cv, parseFloat(p.cv)],
+                                      ];
+                                      return rows
+                                        .filter(([, , pv]) => !isNaN(pv))
+                                        .map(([lbl, nv, pv]) => {
+                                          const diff = nv - pv,
+                                            pct =
+                                              pv !== 0
+                                                ? (diff / Math.abs(pv)) * 100
+                                                : null;
+                                          const dec = lbl === '%CV' ? 2 : 3;
+                                          // For bias row, show APS pass/fail
+                                          const isMean = lbl === 'Mean';
+                                          const rowStatus =
+                                            isMean && b
+                                              ? b.conversionWarning
+                                                ? 'warn'
+                                                : b.pass
+                                                  ? 'pass'
+                                                  : 'fail'
+                                              : null;
+                                          return h(
+                                            'tr',
+                                            {
+                                              key: lbl,
+                                              style: {
+                                                borderTop: `1px solid ${C.border}33`,
+                                              },
+                                            },
+                                            h(
+                                              'td',
+                                              {
+                                                style: {
+                                                  color: C.muted,
+                                                  padding: '5px 8px',
+                                                },
+                                              },
+                                              lbl,
+                                            ),
+                                            h(
+                                              'td',
+                                              {
+                                                style: {
+                                                  color: C.text,
+                                                  padding: '5px 8px',
+                                                  textAlign: 'right',
+                                                },
+                                              },
+                                              fmt(pv, dec),
+                                            ),
+                                            h(
+                                              'td',
+                                              {
+                                                style: {
+                                                  color: C.text,
+                                                  padding: '5px 8px',
+                                                  textAlign: 'right',
+                                                },
+                                              },
+                                              fmt(nv, dec),
+                                            ),
+                                            h(
+                                              'td',
+                                              {
+                                                style: {
+                                                  padding: '5px 8px',
+                                                  textAlign: 'right',
+                                                  color:
+                                                    Math.abs(diff) < 0.00001
+                                                      ? C.muted
+                                                      : diff > 0
+                                                        ? C.yellow
+                                                        : C.green,
+                                                },
+                                              },
+                                              Math.abs(diff) < 0.00001
+                                                ? '—'
+                                                : `${diff > 0 ? '+' : ''}${fmt(diff, dec)}`,
+                                            ),
+                                            h(
+                                              'td',
+                                              {
+                                                style: {
+                                                  padding: '5px 8px',
+                                                  textAlign: 'right',
+                                                },
+                                              },
+                                              isMean && b
+                                                ? badge(
+                                                    rowStatus,
+                                                    b.conversionWarning
+                                                      ? 'REVIEW'
+                                                      : b.pass
+                                                        ? 'PASS'
+                                                        : 'FAIL',
+                                                  )
+                                                : h(
+                                                    'span',
+                                                    {
+                                                      style: { color: C.muted },
+                                                    },
+                                                    '—',
+                                                  ),
+                                            ),
+                                          );
+                                        });
+                                    })(),
+                                    // APS limit row
+                                    b &&
+                                      h(
+                                        'tr',
+                                        {
+                                          key: 'aps',
+                                          style: {
+                                            borderTop: `1px solid ${C.border}`,
+                                          },
+                                        },
+                                        h(
+                                          'td',
+                                          {
+                                            style: {
+                                              color: C.accent,
+                                              padding: '5px 8px',
+                                              fontSize: 11,
+                                            },
+                                            colSpan: 2,
+                                          },
+                                          'APS Limit',
+                                        ),
+                                        h(
+                                          'td',
+                                          {
+                                            style: {
+                                              color: C.text,
+                                              padding: '5px 8px',
+                                              textAlign: 'right',
+                                              fontSize: 11,
+                                            },
+                                            colSpan: 3,
+                                          },
+                                          b.limitType,
+                                        ),
+                                      ),
+                                  ),
+                                ),
+                              ),
+                          ),
+
+                          // LJ chart
+                          h(
+                            'div',
+                            { style: { marginBottom: 16 } },
+                            h(
+                              'div',
+                              {
+                                style: {
+                                  fontSize: 10,
+                                  color: C.muted,
+                                  letterSpacing: 1,
+                                  marginBottom: 8,
+                                },
+                              },
+                              'LEVEY-JENNINGS CHART',
+                            ),
+	                            h(LJChart, {
+	                              runs: runs[lvl],
+	                              mean: s.mean,
+	                              sd: s.sd,
+	                              prevMean: p.mean,
+	                            }),
+                          ),
+
+                          // Auto-generated comments
+                          comments.length > 0 &&
+                            h(
+                              'div',
+                              {
+                                style: {
+                                  background: C.surface,
+                                  border: `1px solid ${C.border}`,
+                                  borderRadius: 9,
+                                  padding: '14px 18px',
+                                },
+                              },
+                              h(
+                                'div',
+                                {
+                                  style: {
+                                    fontSize: 14,
+                                    color: C.accent,
+                                    letterSpacing: 0,
+                                    textTransform: 'none',
+                                    marginBottom: 10,
+                                    fontWeight: 700,
+                                  },
+                                },
+                                'Auto-generated Assessment & Recommended Actions',
+                              ),
+                              ...comments.map((line, i) => {
+                                const isAction = line.startsWith('  →');
+                                const isFail = line.startsWith('⚠');
+                                const isPass = line.startsWith('✓');
+                                return h(
+                                  'div',
+                                  {
+                                    key: i,
+                                    style: {
+                                      fontSize: 14,
+                                      lineHeight: 1.7,
+                                      marginBottom: isAction ? 8 : 4,
+                                      color: isAction
+                                        ? C.muted
+                                        : isFail
+                                          ? C.yellow
+                                          : isPass
+                                            ? C.green
+                                            : C.text,
+                                      paddingLeft: isAction ? 16 : 0,
+                                      borderLeft: isAction
+                                        ? `2px solid ${C.border}`
+                                        : 'none',
+                                      fontStyle: isAction ? 'normal' : 'normal',
+                                    },
+                                  },
+                                  line,
+                                );
+                              }),
+                            ),
+                        ),
+                  );
+                }),
+
+                // Overall assessment + monitoring comment
+                h(
+                  'div',
+                  {
+                    style: {
+                      ...S.card,
+                      borderColor:
+                        overallVerdict === 'PASS'
+                          ? C.greenBorder
+                          : overallVerdict === 'FAIL'
+                            ? C.redBorder
+                            : C.yellowBorder,
+                    },
+                    className: 'print-card overall-page',
+                  },
+                  h(
+                    'div',
+                    { style: S.sec },
+                    'Overall Assessment & Monitoring Plan',
+                  ),
+
+                  // Per-level summary
+                  h(
+                    'div',
+                    { style: { marginBottom: 20 } },
+                    ...LEVELS.filter((l) => stats[l].n > 0).map((lvl) => {
+                      const s = stats[lvl],
+                        b = biasResults[lvl];
+                      const cv = cvStatus(s.cv, cvLimit),
+                        biasPass = b ? b.pass : null;
+                      const biasReview = b ? b.conversionWarning : false;
+                      const rowStatus =
+                        cv === 'fail' || biasPass === false
+                          ? 'fail'
+                          : cv === 'warn' || biasReview
+                            ? 'warn'
+                            : 'pass';
+                      return h(
+                        'div',
+                        {
+                          key: lvl,
+                          style: {
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 12,
+                            padding: '10px 14px',
+                            borderRadius: 8,
+                            marginBottom: 8,
+                            background:
+                              rowStatus === 'pass'
+                                ? C.greenBg
+                                : rowStatus === 'warn'
+                                  ? C.yellowBg
+                                  : C.redBg,
+                            border: `1px solid ${rowStatus === 'pass' ? C.greenBorder : rowStatus === 'warn' ? C.yellowBorder : C.redBorder}`,
+                          },
+                        },
+                        h(
+                          'span',
+                          { style: { fontSize: 16 } },
+                          rowStatus === 'pass'
+                            ? '✓'
+                            : rowStatus === 'warn'
+                              ? '⚠'
+                              : '✗',
+                        ),
+                        h('span', { style: { flex: 1, fontSize: 13 } }, lvl),
+                        h(
+                          'span',
+                          {
+                            style: {
+                              color:
+                                rowStatus === 'pass'
+                                  ? C.green
+                                  : rowStatus === 'warn'
+                                    ? C.yellow
+                                    : C.red,
+                              fontSize: 13,
+                              fontWeight: 700,
+                            },
+                          },
+                          rowStatus === 'pass'
+                            ? 'ACCEPTABLE'
+                            : rowStatus === 'warn'
+                              ? 'WARNING'
+                              : 'REQUIRES ACTION',
+                        ),
+                        h(
+                          'div',
+                          {
+                            style: {
+                              textAlign: 'right',
+                              fontSize: 11,
+                              color: C.muted,
+                            },
+                          },
+                          h(
+                            'div',
+                            null,
+                            `%CV: ${fmt(s.cv, 2)}% ${
+                              cv === 'pass' ? '✓' : cv === 'warn' ? '⚠' : '✗'
+                            }`,
+                          ),
+                          b &&
+                            h(
+                              'div',
+                              null,
+                              `Bias: ${fmt(b.diff, 3)}${b.unit ? ' ' + b.unit : ''} ${
+                                b.conversionWarning ? '⚠' : b.pass ? '✓' : '✗'
+                              }`,
+                            ),
+                        ),
+                      );
+                    }),
+                  ),
+
+                  // Monitoring / next steps section
+                  h(
+                    'div',
+                    { style: { marginBottom: 20 } },
+                    h(
+                      'div',
+                      {
+                        style: {
+                          fontSize: 10,
+                          color: C.accent,
+                          letterSpacing: 1.5,
+                          textTransform: 'uppercase',
+                          fontWeight: 700,
+                          marginBottom: 10,
+                        },
+                      },
+                      'QC Monitoring & Re-establishment Plan',
+                    ),
+                    overallVerdict === 'PASS'
+                      ? h(
+                          'div',
+                          {
+                            style: {
+                              background: C.greenBg,
+                              border: `1px solid ${C.greenBorder}`,
+                              borderRadius: 9,
+                              padding: '14px 18px',
+                              fontSize: 12,
+                              lineHeight: 1.8,
+                              color: C.text,
+                            },
+                          },
+                          h(
+                            'div',
+                            {
+                              style: {
+                                fontWeight: 700,
+                                color: C.green,
+                                marginBottom: 8,
+                              },
+                            },
+                            '✓ New lot verified and accepted for clinical use.',
+                          ),
+                          h('div', null, 'Monitoring plan:'),
+                          h(
+                            'div',
+                            {
+                              style: {
+                                paddingLeft: 16,
+                                color: C.muted,
+                                borderLeft: `2px solid ${C.greenBorder}`,
+                                marginTop: 6,
+                              },
+                            },
+                            h(
+                              'div',
+                              null,
+                              '• QC will be monitored prospectively on the new lot from ' +
+                                meta.date +
+                                '.',
+                            ),
+                            h(
+                              'div',
+                              null,
+                              '• Current QC targets (mean ± 2SD) will remain in use during the re-establishment phase.',
+                            ),
+                            h(
+                              'div',
+                              null,
+                              '• Formal QC target update (new lot-specific mean and SD) will be performed after a minimum of 20 QC data points are accumulated.',
+                            ),
+                            h(
+                              'div',
+                              null,
+                              '• Any evidence of drift, trending, or repeated Westgard rule violations during this period will trigger formal re-evaluation of lot acceptability.',
+                            ),
+                            h(
+                              'div',
+                              null,
+                              '• If %CV or bias exceeds APS limits during routine monitoring, the lot will be re-assessed and manufacturer contacted if required.',
+                            ),
+                          ),
+                        )
+                      : overallVerdict === 'FAIL'
+                        ? h(
+                            'div',
+                            {
+                              style: {
+                                background: C.redBg,
+                                border: `1px solid ${C.redBorder}`,
+                                borderRadius: 9,
+                                padding: '14px 18px',
+                                fontSize: 12,
+                                lineHeight: 1.8,
+                                color: C.text,
+                              },
+                            },
+                            h(
+                              'div',
+                              {
+                                style: {
+                                  fontWeight: 700,
+                                  color: C.red,
+                                  marginBottom: 8,
+                                },
+                              },
+                              '✗ New lot NOT accepted — investigation required before clinical use.',
+                            ),
+                            h(
+                              'div',
+                              {
+                                style: {
+                                  paddingLeft: 16,
+                                  color: C.muted,
+                                  borderLeft: `2px solid ${C.redBorder}`,
+                                  marginTop: 6,
+                                },
+                              },
+                              h(
+                                'div',
+                                null,
+                                'Step 1: Verify QC material handling — check reconstitution, storage, and freeze-thaw history.',
+                              ),
+                              h(
+                                'div',
+                                null,
+                                'Step 2: Repeat the 5-run verification at all failing levels.',
+                              ),
+                              h(
+                                'div',
+                                null,
+                                'Step 3: Recalibrate the analyser with the new lot and repeat verification.',
+                              ),
+                              h(
+                                'div',
+                                null,
+                                'Step 4: If still failing, perform patient sample comparison (minimum 10 samples spanning the AMR).',
+                              ),
+                              h(
+                                'div',
+                                null,
+                                'Step 5: If patient samples confirm failure, contact the manufacturer with your data and request a replacement lot.',
+                              ),
+                              h(
+                                'div',
+                                null,
+                                'Step 6: Continue using the previous lot until the new lot is accepted or a replacement is received.',
+                              ),
+                              h(
+                                'div',
+                                null,
+                                'Step 7: Document all investigation steps, findings, and final decision with authorisation by a senior scientist or pathologist.',
+                              ),
+                              h(
+                                'div',
+                                null,
+                                'DO NOT release patient results from the new lot until formal acceptance criteria are met.',
+                              ),
+                            ),
+                          )
+                        : h(
+                            'div',
+                            {
+                              style: {
+                                background: C.yellowBg,
+                                border: `1px solid ${C.yellowBorder}`,
+                                borderRadius: 9,
+                                padding: '14px 18px',
+                                fontSize: 12,
+                                lineHeight: 1.8,
+                                color: C.text,
+                              },
+                            },
+                            h(
+                              'div',
+                              {
+                                style: {
+                                  fontWeight: 700,
+                                  color: C.yellow,
+                                  marginBottom: 8,
+                                },
+                              },
+                              '⚠ Review required — some criteria not fully assessed.',
+                            ),
+                            h(
+                              'div',
+                              {
+                                style: {
+                                  paddingLeft: 16,
+                                  color: C.muted,
+                                  borderLeft: `2px solid ${C.yellowBorder}`,
+                                  marginTop: 6,
+                                },
+                              },
+	                              ...reportReviewMessages.map((msg) =>
+	                                h('div', { key: msg }, msg),
+	                              ),
+	                            ),
+	                          ),
+                  ),
+
+	                // Scientist notes
+                  h(
+                    'div',
+                    { style: { marginBottom: 24 } },
+                    h(
+                      'label',
+                      { style: S.lbl },
+	                      'Scientist Notes / Additional Comments',
+                    ),
+                    h('textarea', {
+                      style: { ...S.inp, height: 90, resize: 'vertical' },
+                      value: meta.notes,
+                      placeholder:
+                        'Add any observations, deviations, or additional action items here...',
+                      onChange: (e) => setMF('notes', e.target.value),
+                    }),
+                  ),
+
+                  // Sign-off
+                  h(
+                    'div',
+                    {
+                      style: {
+                        display: 'grid',
+                        gridTemplateColumns: '1fr 1fr',
+                        gap: 32,
+                      },
+                    },
+                    h(
+                      'div',
+                      null,
+                      h(
+                        'div',
+                        {
+                          style: {
+                            fontSize: 10,
+                            color: C.muted,
+                            letterSpacing: 1,
+                            marginBottom: 10,
+                          },
+                        },
+	                        'SCIENTIST SIGN-OFF',
+                      ),
+                      h(
+                        'div',
+                        {
+                          style: {
+                            borderBottom: `1px solid ${C.border}`,
+                            paddingBottom: 6,
+                            marginBottom: 6,
+                            fontSize: 13,
+                          },
+                        },
+                        meta.analyst,
+                      ),
+                      h(
+                        'div',
+                        { style: { fontSize: 11, color: C.muted } },
+                        meta.date,
+                      ),
+                    ),
+                    h(
+                      'div',
+                      null,
+                      h(
+                        'div',
+                        {
+                          style: {
+                            fontSize: 10,
+                            color: C.muted,
+                            letterSpacing: 1,
+                            marginBottom: 10,
+                          },
+                        },
+                        'SENIOR SCIENTIST / PATHOLOGIST REVIEW',
+                      ),
+                      h(
+                        'div',
+                        {
+                          style: {
+                            borderBottom: `1px solid ${C.border}`,
+                            paddingBottom: 6,
+                            marginBottom: 6,
+                            fontSize: 13,
+                            height: 28,
+                          },
+                        },
+                        meta.reviewer || '',
+                      ),
+                      h(
+                        'div',
+                        { style: { fontSize: 11, color: C.muted } },
+                        'Date: ___________',
+                      ),
+                    ),
+                  ),
+                ),
+
+                // Action buttons
+                h(
+                  'div',
+                  {
+                    className: 'no-print',
+                    style: {
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      gap: 12,
+                    },
+                  },
+                  h(
+                    'button',
+                    { style: btnStyle('ghost'), onClick: () => setStep(1) },
+                    '← Back to Data',
+                  ),
+                  h(
+                    'div',
+                    { style: { display: 'flex', gap: 12 } },
+                    h(
+                      'button',
+                      { style: btnStyle('secondary'), onClick: exportCSV },
+                      '↓ Export CSV',
+                    ),
+                    h(
+                      'button',
+                      {
+                        style: btnStyle('primary'),
+                        onClick: () => window.print(),
+                      },
+                      '🖨 Print / Save PDF',
+                    ),
+                  ),
+                ),
+              ),
+          ),
+          h(
+            'footer',
+            {
+              className: 'no-print verifier-footer',
+              style: {
+                maxWidth: 1280,
+                margin: '0 auto',
+                padding: '0 40px 32px',
+                color: C.muted,
+                fontSize: 13,
+                letterSpacing: 0,
+                textAlign: 'center',
+              },
+            },
+            `© ${new Date().getFullYear()} LabSight. Reagent Lot Verification Tool v1.1 for laboratory QC support.`,
+          ),
+        );
+      }
+
+      ReactDOM.createRoot(document.getElementById('root')).render(h(App));
+    </script>
+  </body>
+</html>

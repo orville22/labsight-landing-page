@@ -1,377 +1,490 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>LabSight | Modern Lab Operations</title>
+    <title>LabSight | Quality Knowledge for Modern Laboratories</title>
     <link
-      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Manrope:wght@400;500;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <div class="glow-sphere sphere-1"></div>
-    <div class="glow-sphere sphere-2"></div>
-    <header>
-      <div class="nav">
-        <div class="brand">
-          <img class="brand-logo" src="labsight_logo.svg" alt="LabSight logo" />
-          <span>LabSight</span>
+    <div class="site-shell">
+      <header class="site-header">
+        <div class="site-nav">
+          <a class="brand" href="#top" aria-label="LabSight home">
+            <img
+              class="brand-logo"
+              src="public/labsight_logo.svg"
+              alt="LabSight logo"
+            />
+            <span>LabSight</span>
+          </a>
+          <nav class="nav-links" aria-label="Primary navigation">
+            <a href="#free-tools">Free Tools</a>
+            <a href="blog.html">Blog</a>
+            <a href="#labops">LabOps</a>
+            <a href="#audience">Audience</a>
+          </nav>
+          <a class="btn btn-small" href="#waitlist">Join Waitlist</a>
         </div>
-        <nav>
-          <ul>
-            <li><a href="#services">Platform</a></li>
-            <li><a href="#why">Why LabSight</a></li>
-            <li><a href="#cta">Contact</a></li>
-          </ul>
-        </nav>
-        <a class="btn" href="#cta">Request a demo</a>
-      </div>
-    </header>
+      </header>
 
-    <main>
-      <section class="hero">
-        <div>
-          <div class="pill">
-            <span>Built by a medical scientist</span>
-            <span
-              style="
-                display: inline-flex;
-                align-items: center;
-                gap: 6px;
-                color: var(--text);
-              "
-              ><svg
-                width="16"
-                height="16"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.8"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+      <main id="top">
+        <section class="hero resource-hero">
+          <div class="hero-copy">
+            <p class="eyebrow">
+              For laboratory scientists and lab professionals
+            </p>
+            <h1>Practical tools for laboratory scientists.</h1>
+            <p class="hero-subtitle">
+              LabSight builds software for the real operational work of the lab:
+              QC, reagent lot changes, troubleshooting, and documentation. Our
+              full LabOps platform is still in development, but you can use our
+              free tools and resources today.
+            </p>
+            <div class="hero-actions">
+              <a class="btn" href="#free-tools">Explore Free Resources</a>
+              <a class="btn secondary" href="#waitlist"
+                >Join the LabOps Waitlist</a
               >
-                <path d="M3 9l3 3 7-7" /></svg
-              >Designed for real laboratories</span
+            </div>
+            <p class="supporting-line">
+              Built by scientists who understand what happens at the bench.
+            </p>
+          </div>
+          <div class="hero-panel">
+            <div class="panel-label">Available now</div>
+            <h2>Reagent Lot Verification Calculator</h2>
+            <p>
+              Compare old and new reagent lots, check APS bias, detect outliers,
+              and generate an audit-ready verification report.
+            </p>
+            <a class="btn secondary" href="public/tools/rgtlotverifierv1-2.html"
+              >Launch Tool</a
             >
           </div>
-          <h1>LabSight Ecosystem — the modern pathology lab platform.</h1>
-          <p>
-            Built by a Medical Scientist. Engineered for Every Lab. LabSight is
-            a unified digital ecosystem designed to streamline quality
-            management, sample logistics, and inventory control across
-            laboratories of all sizes—from single-site teams to
-            enterprise-scale, multi-department networks. Whether your lab
-            processes hundreds or thousands of samples a day, LabSight provides
-            the clarity, tracking, and automation needed to ensure accuracy,
-            compliance, and operational excellence.
+        </section>
+
+        <section class="trust-bar" aria-label="Standards references">
+          <p>Built on</p>
+          <div>
+            <span>RCPAQAP APS</span>
+            <span>CLSI EP26-A</span>
+            <span>Westgard QC Principles</span>
+            <span>Biological Variation (Ricos)</span>
+          </div>
+        </section>
+
+        <section class="section about-section" id="about">
+          <p class="section-label">About</p>
+          <div class="split">
+            <h2>
+              LabSight builds useful lab software, starting with the problems
+              scientists face every day.
+            </h2>
+            <div class="body-copy">
+              <p>
+                We are a lab software company building tools for scientists who
+                run QC, investigate analyser issues, manage handover, document
+                lot changes, and keep quality work defensible.
+              </p>
+              <p>
+                The larger product vision is still in development. Rather than
+                wait until everything is finished, we are publishing free tools
+                and practical resources that provide value now.
+              </p>
+              <p>
+                Everything here is clinically grounded, accreditation-aware, and
+                written for people who understand the bench, not generic
+                administrators.
+              </p>
+            </div>
+          </div>
+          <div class="three-grid pillar-grid">
+            <article class="resource-card">
+              <h3>Free tools</h3>
+              <p>
+                Calculators and checkers scientists can use now for real bench
+                problems, starting with reagent lot verification.
+              </p>
+            </article>
+            <article class="resource-card">
+              <h3>Practical resources</h3>
+              <p>
+                Short, standards-aware guides that explain how to apply QC and
+                verification concepts at work.
+              </p>
+            </article>
+            <article class="resource-card">
+              <h3>LabOps in development</h3>
+              <p>
+                An operational memory workspace for current issues, handover,
+                troubleshooting, and analyser context.
+              </p>
+            </article>
+          </div>
+        </section>
+
+        <section class="section" id="free-tools">
+          <p class="section-label">Free Tools</p>
+          <div class="section-heading">
+            <h2>Start using these today. No signup needed.</h2>
+            <p>
+              Free resources are not a side project. They are how we make
+              LabSight useful while the larger products are still being built.
+            </p>
+          </div>
+          <div class="tool-grid">
+            <article class="resource-card featured-card">
+              <h3>Reagent Lot Verification Calculator</h3>
+              <p>
+                Run 5 repeats across 3 QC levels, check bias against RCPAQAP APS
+                limits, detect outliers with the Grubbs test, and generate a
+                printable verification report with auto-generated investigation
+                comments.
+              </p>
+              <div class="tag-list">
+                <span>QC</span><span>Lot Verification</span
+                ><span>RCPAQAP APS</span><span>Grubbs Test</span>
+              </div>
+              <a
+                class="btn card-btn"
+                href="public/tools/rgtlotverifierv1-2.html"
+                >Launch Tool →</a
+              >
+            </article>
+
+            <article class="resource-card muted-card">
+              <span class="status-pill">Coming soon</span>
+              <h3>Westgard Rules QC Checker</h3>
+              <p>
+                Enter your QC data and get an instant Westgard multi-rule
+                analysis with a Levey-Jennings chart and rule violation
+                commentary.
+              </p>
+              <div class="tag-list">
+                <span>QC</span><span>Westgard</span><span>Levey-Jennings</span>
+              </div>
+              <a class="text-link" href="#waitlist">Notify me →</a>
+            </article>
+
+            <article class="resource-card muted-card">
+              <span class="status-pill">Coming soon</span>
+              <h3>Analytical Measurement Range (AMR) Validator</h3>
+              <p>
+                Document linearity verification, calculate recovery, and
+                generate an AMR report ready for accreditation review.
+              </p>
+              <div class="tag-list">
+                <span>Method Verification</span><span>Linearity</span
+                ><span>CLSI EP06</span>
+              </div>
+              <a class="text-link" href="#waitlist">Notify me →</a>
+            </article>
+
+            <article class="resource-card muted-card">
+              <span class="status-pill">Coming soon</span>
+              <h3>Biological Variation Goals Reference</h3>
+              <p>
+                Look up Ricos desirable imprecision, bias, and total error goals
+                for over 300 analytes alongside RCPAQAP APS limits for direct
+                comparison.
+              </p>
+              <div class="tag-list">
+                <span>Biological Variation</span><span>APS</span
+                ><span>Total Allowable Error</span>
+              </div>
+              <a class="text-link" href="#waitlist">Notify me →</a>
+            </article>
+          </div>
+        </section>
+
+        <section class="section" id="guides">
+          <p class="section-label">Guides</p>
+          <div class="section-heading">
+            <h2>Practical knowledge, not textbook theory.</h2>
+            <p>
+              Written for scientists who need to apply this at work, not pass an
+              exam.
+            </p>
+          </div>
+          <div class="guide-grid">
+            <article class="resource-card guide-card">
+              <span class="reading-time">Reading time: ~12 min</span>
+              <h3>New Reagent Lot Verification - A Complete Walkthrough</h3>
+              <p>
+                Why it matters, how to design the verification, how to interpret
+                bias against APS limits, what to do when a lot fails, and how to
+                document it for accreditation.
+              </p>
+              <a class="text-link" href="article.html?slug=new-reagent-lot-verification-walkthrough">Read article →</a>
+            </article>
+            <article class="resource-card guide-card">
+              <span class="reading-time">Reading time: ~8 min</span>
+              <h3>
+                Understanding the RCPAQAP Analytical Performance Specifications
+              </h3>
+              <p>
+                A plain-language explanation of how APS limits are structured,
+                what the basis categories mean, and how to use them as
+                acceptance criteria.
+              </p>
+              <a class="text-link" href="article.html?slug=understanding-rcpaqap-analytical-performance-specifications">Read article →</a>
+            </article>
+            <article class="resource-card guide-card">
+              <span class="reading-time">Reading time: ~10 min</span>
+              <h3>Westgard Rules Explained - Which Rules, When, and Why</h3>
+              <p>
+                A practical guide to the 1-2s, 1-3s, 2-2s, R-4s, 4-1s, and 10x
+                rules and how each detects a different type of analytical error.
+              </p>
+              <a class="text-link" href="article.html?slug=westgard-rules-explained">Read article →</a>
+            </article>
+            <article class="resource-card guide-card">
+              <span class="reading-time">Reading time: ~6 min</span>
+              <h3>QC Target Re-establishment After a Lot Change</h3>
+              <p>
+                Why 5 runs isn't enough to set new targets, how to accumulate 20
+                data points correctly, and when to formally update your mean and
+                SD.
+              </p>
+              <a class="text-link" href="article.html?slug=qc-target-re-establishment-after-lot-change">Read article →</a>
+            </article>
+            <article class="resource-card guide-card">
+              <span class="reading-time">Reading time: ~7 min</span>
+              <h3>Grubbs Test for Outliers - When to Use It and When Not To</h3>
+              <p>
+                How to apply the Grubbs test correctly, what the rules around
+                exclusion are, and why you can't remove a value just because it
+                fails.
+              </p>
+              <a class="text-link" href="article.html?slug=grubbs-test-for-outliers">Read article →</a>
+            </article>
+            <article class="resource-card guide-card">
+              <span class="reading-time">Reading time: ~9 min</span>
+              <h3>
+                Total Allowable Error, Imprecision, and Bias - What's the
+                Difference?
+              </h3>
+              <p>
+                A practical explanation of the analytical performance hierarchy
+                and how it connects to everyday QC decisions.
+              </p>
+              <a class="text-link" href="article.html?slug=total-allowable-error-imprecision-bias">Read article →</a>
+            </article>
+          </div>
+        </section>
+
+        <section class="section labops-section" id="labops">
+          <p class="section-label">Coming Soon</p>
+          <div class="section-heading">
+            <h2>LabOps - the operational memory your lab keeps losing.</h2>
+            <p>
+              A local-first workspace for QC handover, troubleshooting,
+              investigation notes, analyser issues, and reagent or calibrator
+              lot context.
+            </p>
+          </div>
+          <p class="body-copy max-copy">
+            LabOps is not a replacement for your LIS, middleware, analyser
+            software, Unity Realtime, or official QC system. It is the
+            collaboration layer around those systems: the place where current
+            issues, handover notes, troubleshooting steps, ownership changes,
+            and operational context stay visible instead of disappearing into
+            memory, paper, or message threads.
           </p>
-          <div class="hero-actions">
-            <a class="btn" href="#cta">Book a walkthrough</a>
-            <a class="btn secondary" href="#services">Explore the suite</a>
-          </div>
-          <div
-            style="margin-top: 18px; display: flex; gap: 10px; flex-wrap: wrap"
-          >
-            <div class="metric">Lightweight & fast</div>
-            <div class="metric">Audit-ready from day one</div>
-            <div class="metric">Zero learning curve for staff</div>
-          </div>
-        </div>
-        <div class="panel">
-          <div style="position: relative; z-index: 1; display: grid; gap: 14px">
-            <div class="service-card" style="margin: 0">
-              <div class="service-tag">LabSight QMS</div>
-              <h3>Quality meets velocity</h3>
+          <div class="feature-grid">
+            <article class="feature-tile">
+              <h3>Current Issues Board</h3>
               <p>
-                QC oversight without spreadsheets or patchwork tools. Trend,
-                investigate, and act with ISO 15189-aligned workflows that teams
-                actually use.
+                Create, filter, claim, and update operational items by status,
+                category, severity, analyser, and ownership.
               </p>
-              <div class="service-meta">
-                <span
-                  style="
-                    width: 8px;
-                    height: 8px;
-                    border-radius: 50%;
-                    background: var(--accent);
-                  "
-                ></span>
-                Real-time deviation capture
-              </div>
-            </div>
-            <div
-              class="service-card"
-              style="
-                background: radial-gradient(
-                    circle at 20% 20%,
-                    rgba(106, 240, 201, 0.26),
-                    transparent 50%
-                  ),
-                  #0c1426;
-              "
-            >
-              <div
-                class="service-tag"
-                style="
-                  background: rgba(122, 183, 255, 0.14);
-                  color: var(--accent-2);
-                  border-color: rgba(122, 183, 255, 0.35);
-                "
-              >
-                SpeciTrak
-              </div>
-              <h3>Send-out tracking without chaos</h3>
+            </article>
+            <article class="feature-tile">
+              <h3>Timeline-based Operational Memory</h3>
               <p>
-                The logistics layer between LIS and your couriers. Every
-                referred-out sample is traceable, time-stamped, and
-                accountable—no more email chase-ups.
+                Keep troubleshooting notes, handover context, status changes,
+                and ownership history attached to the issue instead of scattered
+                across chats and notebooks.
               </p>
-              <div class="service-meta">
-                <span
-                  style="
-                    width: 8px;
-                    height: 8px;
-                    border-radius: 50%;
-                    background: var(--accent-2);
-                  "
-                ></span>
-                TAT monitoring & exceptions
-              </div>
-            </div>
+            </article>
+            <article class="feature-tile">
+              <h3>Analyser-focused Dashboard</h3>
+              <p>
+                See database-backed summary cards and analyser operations
+                context so the team knows what needs attention before the next
+                handover.
+              </p>
+            </article>
+            <article class="feature-tile">
+              <h3>Shared Whiteboard</h3>
+              <p>
+                Capture short-lived bench context, reminders, and team
+                observations in one visible place during the working day.
+              </p>
+            </article>
+            <article class="feature-tile">
+              <h3>Low-friction Issue Creation</h3>
+              <p>
+                Quick-create buttons and a simple entry form make it easy to
+                record problems while the details are still fresh.
+              </p>
+            </article>
+            <article class="feature-tile">
+              <h3>Role-aware Review Flow</h3>
+              <p>
+                User, Senior, and Admin roles support practical accountability
+                now, with audit logs, reminders, and deeper permissions planned
+                for later phases.
+              </p>
+            </article>
           </div>
-        </div>
-      </section>
-
-      <section class="services" id="services">
-        <div class="section-header">
-          <h2>The LabSight ecosystem</h2>
-          <span style="color: var(--muted); font-size: 14px"
-            >One suite built for pathology labs that want clarity without the
-            complexity.</span
-          >
-        </div>
-        <div class="service-grid">
-          <div class="service-card">
-            <div class="service-tag">LabSight QMS</div>
-            <h3>Quality Management System</h3>
-            <p>
-              QC made simple, smart, and compliant. Built specifically for
-              small-to-medium labs. Monitor, investigate, and improve analytical
-              performance without spreadsheets or patchwork tools.
-            </p>
-            <div class="feature-grid">
-              <div class="feature">
-                <h4>QC grid dashboard</h4>
-                <p>
-                  Real-time analyte overview across platforms with clear
-                  trendlines.
-                </p>
-              </div>
-              <div class="feature">
-                <h4>Trend analysis</h4>
-                <p>
-                  Levey-Jennings charts, Westgard rule detection, and
-                  intelligent alerts.
-                </p>
-              </div>
-              <div class="feature">
-                <h4>Review & action</h4>
-                <p>
-                  Document issues, track resolutions, and stay audit-ready with
-                  ISO 15189-aligned workflows.
-                </p>
-              </div>
+          <div class="waitlist-card" id="waitlist">
+            <div>
+              <h3>Join the LabOps Waitlist</h3>
+              <p>
+                Be among the first labs to test LabOps as an operational memory
+                layer. Early access is free, and your feedback shapes what we
+                build next.
+              </p>
             </div>
-          </div>
-
-          <div class="service-card">
-            <div
-              class="service-tag"
-              style="
-                background: rgba(122, 183, 255, 0.14);
-                color: var(--accent-2);
-                border-color: rgba(122, 183, 255, 0.35);
-              "
+            <form
+              class="waitlist-form"
+              action="mailto:hello@labsight.io?subject=LabOps%20Waitlist"
+              method="post"
+              enctype="text/plain"
             >
-              SpeciTrak
-            </div>
-            <h3>End-to-end send-out tracking</h3>
-            <p>
-              SpeciTrak overlays the logistics layer between your Kestral LIS
-              and the physical courier process—no LIS replacement required.
-              Every referred-out sample is time-stamped, accountable, and
-              visible from pickup to final report.
-            </p>
-            <div class="feature-grid">
-              <div class="feature">
-                <h4>Sample registration & barcodes</h4>
-                <p>
-                  End-to-end traceability, including BOR handling and batch
-                  tracking.
-                </p>
+              <label for="work-email">Work email address</label>
+              <div>
+                <input
+                  id="work-email"
+                  name="work-email"
+                  type="email"
+                  placeholder="scientist@lab.org"
+                  required
+                />
+                <button class="btn" type="submit">Request Early Access</button>
               </div>
-              <div class="feature">
-                <h4>Courier mobile app</h4>
-                <p>
-                  Status updates at each handover; “where is my sample?”
-                  answered instantly.
-                </p>
-              </div>
-              <div class="feature">
-                <h4>TAT analytics</h4>
-                <p>
-                  Turnaround-time monitoring, notifications, exceptions, and
-                  full audit trail for accreditation.
-                </p>
-              </div>
-            </div>
+              <p>
+                No commitment. No spam. Just a heads-up when LabOps is ready for
+                your lab.
+              </p>
+            </form>
           </div>
+        </section>
 
-          <div class="service-card">
-            <div
-              class="service-tag"
-              style="
-                background: rgba(106, 240, 201, 0.12);
-                color: var(--accent);
-                border-color: rgba(106, 240, 201, 0.35);
-              "
-            >
-              Inventory App (name TBD)
-            </div>
-            <h3>Smart reagent & supply management</h3>
-            <p>
-              Lightweight, accurate, and fast. Eliminate stockouts, guessing,
-              and manual tallying with a zero-learning-curve workflow.
-            </p>
-            <div class="feature-grid">
-              <div class="feature">
-                <h4>Real-time stock levels</h4>
-                <p>
-                  Scan-to-use at fridges and analyzers with future
-                  analyzer/middleware integrations.
-                </p>
-              </div>
-              <div class="feature">
-                <h4>Expiry & lot tracking</h4>
-                <p>
-                  Lot numbers, expirations, and certificates tied to runs for
-                  faster QC review.
-                </p>
-              </div>
-              <div class="feature">
-                <h4>Usage analytics</h4>
-                <p>
-                  Predict consumption based on actual workload with multi-lab
-                  architecture to keep facilities separate and secure.
-                </p>
-              </div>
-            </div>
+        <section class="section" id="audience">
+          <p class="section-label">Audience</p>
+          <div class="section-heading">
+            <h2>Built for the people doing the work.</h2>
           </div>
-        </div>
-      </section>
+          <div class="three-grid">
+            <article class="resource-card">
+              <h3>Medical Scientists & Analysts</h3>
+              <p>
+                You're the one running the verifications, writing the SOPs, and
+                answering the auditor's questions. LabSight gives you tools and
+                reference material to do that faster and with more confidence.
+              </p>
+            </article>
+            <article class="resource-card">
+              <h3>Senior Scientists & QC Leads</h3>
+              <p>
+                You're accountable for the quality system. LabSight gives you
+                standardised workflows, clear documentation, and visibility
+                without chasing spreadsheets.
+              </p>
+            </article>
+            <article class="resource-card">
+              <h3>Laboratory Managers & Pathologists</h3>
+              <p>
+                You need to know the lab's QC is defensible without being
+                involved in every decision. LabSight's sign-off workflows and
+                audit trails give you assurance without micromanagement.
+              </p>
+            </article>
+          </div>
+        </section>
 
-      <section class="services" id="why">
-        <div class="section-header">
-          <h2>Why labs choose LabSight</h2>
-        </div>
-        <div class="feature-grid">
-          <div class="feature">
-            <h4>Built by a medical scientist</h4>
-            <p>
-              15+ years of lab experience baked into workflows that understand
-              QC pain points and accreditation pressure.
-            </p>
+        <section class="section" id="approach">
+          <p class="section-label">Our Approach</p>
+          <div class="section-heading">
+            <h2>Clinically grounded. Practically designed.</h2>
           </div>
-          <div class="feature">
-            <h4>Lightweight and fast</h4>
-            <p>
-              No corporate-level complexity—just what small-to-medium labs need
-              to move quickly.
-            </p>
+          <div class="three-grid">
+            <article class="resource-card">
+              <h3>Grounded in real standards</h3>
+              <p>
+                Every tool and guide references the actual standards laboratory
+                scientists work to: RCPAQAP APS, CLSI guidelines, and biological
+                variation goals.
+              </p>
+            </article>
+            <article class="resource-card">
+              <h3>Built by people who understand laboratories</h3>
+              <p>
+                LabSight isn't a generic SaaS product that found its way into
+                diagnostics. It is designed around clinical laboratory workflow
+                from the bench to the audit.
+              </p>
+            </article>
+            <article class="resource-card">
+              <h3>Free where it matters</h3>
+              <p>
+                The knowledge and tools that help individual scientists do their
+                jobs better will always be free on LabSight. LabOps is where we
+                build a business.
+              </p>
+            </article>
           </div>
-          <div class="feature">
-            <h4>Secure and scalable</h4>
-            <p>
-              Cloud-hosted, role-based controls, and audit trails that work
-              whether you have 5 users or 500.
-            </p>
-          </div>
-          <div class="feature">
-            <h4>Designed for adoption</h4>
-            <p>
-              Minimal clicks, clear screens, and mobile-friendly layouts your
-              staff will actually use.
-            </p>
-          </div>
-          <div class="feature">
-            <h4>Future-ready</h4>
-            <p>
-              AI-assisted QC intelligence, analyzer-linked inventory deductions,
-              and automated compliance on the roadmap.
-            </p>
-          </div>
-          <div class="feature">
-            <h4>One ecosystem</h4>
-            <p>
-              Connected signals across QC, send-outs, and inventory so
-              operations stay in sync.
-            </p>
-          </div>
-        </div>
-      </section>
+        </section>
+      </main>
 
-      <section class="services" id="vision">
-        <div class="section-header">
-          <h2>The LabSight vision</h2>
-        </div>
-        <div class="feature-grid">
-          <div class="feature">
-            <h4>One ecosystem, one login</h4>
-            <p>
-              A single, reliable place for all lab operations: QC, send-outs,
-              and inventory moving in sync.
-            </p>
-          </div>
-          <div class="feature">
-            <h4>Practical for everyday teams</h4>
-            <p>
-              Designed for real laboratories to stay compliant, efficient, and
-              confident—without enterprise bloat.
-            </p>
-          </div>
-        </div>
-      </section>
+      <a class="mobile-waitlist" href="#waitlist">Join LabOps Waitlist</a>
 
-      <section class="cta" id="cta">
-        <h3>Want early access?</h3>
-        <p>
-          LabSight is in private beta. Be the first to try the future of lab QC,
-          sample tracking, and stock management—one ecosystem, one login, one
-          reliable place for operations.
-        </p>
-        <div style="display: flex; gap: 12px; flex-wrap: wrap">
-          <a class="btn" href="mailto:hello@labsight.io"
-            >Register your interest</a
-          >
-          <a class="btn secondary" href="#services">Request a demo</a>
-          <a
-            class="btn secondary"
-            href="mailto:hello@labsight.io?subject=Partner%20with%20LabSight"
-            >Partner with us</a
-          >
+      <footer class="footer">
+        <div class="footer-grid">
+          <div>
+            <h3>LabSight</h3>
+            <p>Practical software tools for laboratory scientists.</p>
+          </div>
+          <div>
+            <h3>Free Tools</h3>
+            <a href="public/tools/rgtlotverifierv1-2.html"
+              >Reagent Lot Verification Calculator</a
+            ><span>Westgard QC Checker (coming soon)</span
+            ><span>AMR Validator (coming soon)</span
+            ><span>Biological Variation Reference (coming soon)</span>
+          </div>
+          <div>
+            <h3>Guides</h3>
+            <a href="article.html?slug=new-reagent-lot-verification-walkthrough">New Lot Verification Walkthrough</a
+            ><a href="article.html?slug=understanding-rcpaqap-analytical-performance-specifications">RCPAQAP APS Explained</a
+            ><a href="article.html?slug=westgard-rules-explained">Westgard Rules Guide</a
+            ><a href="article.html?slug=qc-target-re-establishment-after-lot-change">QC Target Re-establishment</a
+            ><a href="article.html?slug=grubbs-test-for-outliers">Grubbs Test Guide</a
+            ><a href="article.html?slug=total-allowable-error-imprecision-bias">Total Allowable Error Guide</a>
+          </div>
+          <div>
+            <h3>LabOps</h3>
+            <a href="#labops">About LabOps</a
+            ><a href="#waitlist">Join the Waitlist</a
+            ><span>Request a Demo (coming soon)</span>
+          </div>
+          <div>
+            <h3>Legal</h3>
+            <span>Privacy Policy</span><span>Terms of Use</span>
+          </div>
         </div>
-      </section>
-    </main>
-
-    <footer>
-      <div class="inner">
-        <div class="brand" style="color: var(--muted)">
-          <img class="brand-logo" src="labsight_logo.svg" alt="LabSight logo" />
-          <span>LabSight</span>
+        <div class="footer-bottom">
+          © 2026 LabSight. Built for laboratory scientists, by people who care
+          about diagnostic quality.
         </div>
-        <span>Built for modern diagnostic and research labs.</span>
-      </div>
-    </footer>
+      </footer>
+    </div>
   </body>
 </html>

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Free Lab Tools | LabSight</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Manrope:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="glow-sphere sphere-1"></div>
+    <div class="glow-sphere sphere-2"></div>
+
+    <header>
+      <div class="nav">
+        <a class="brand" href="index.html">
+          <img class="brand-logo" src="public/labsight_logo.svg" alt="LabSight logo" />
+          <span>LabSight</span>
+        </a>
+        <nav>
+          <ul>
+            <li><a href="index.html#services">Platform</a></li>
+            <li><a href="index.html#why">Why LabSight</a></li>
+            <li><a href="downloads.html">Free tools</a></li>
+            <li><a href="index.html#cta">Contact</a></li>
+          </ul>
+        </nav>
+        <a class="btn" href="mailto:hello@labsight.io">Submit a tool idea</a>
+      </div>
+    </header>
+
+    <main>
+      <section class="download-hero">
+        <div>
+          <div class="pill">Free LabSight resources</div>
+          <h1>Practical tools for QC, send-outs, and inventory work.</h1>
+          <p>
+            This page is ready for downloadable worksheets, calculators, and
+            checklists that help laboratories improve their daily operations.
+            The Reagent Lot Verification Tool is available now, with more
+            resources to follow.
+          </p>
+          <div class="hero-actions">
+            <a class="btn secondary" href="index.html">Back to LabSight</a>
+            <a class="btn" href="mailto:hello@labsight.io">Request a resource</a>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="download-list" style="position: relative; z-index: 1">
+            <div>Interactive tools</div>
+            <div>Worksheets</div>
+            <div>Calculators</div>
+            <div>Checklists</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="services">
+        <div class="section-header">
+          <h2>Available downloads</h2>
+          <span style="color: var(--muted); font-size: 14px"
+            >Update each card when the real file is ready.</span
+          >
+        </div>
+
+        <div class="service-grid">
+          <article class="service-card tool-card">
+            <div class="tag-row">
+              <div class="service-tag">Interactive tool</div>
+              <div
+                class="service-tag"
+                style="
+                  background: rgba(122, 183, 255, 0.14);
+                  color: var(--accent-2);
+                  border-color: rgba(122, 183, 255, 0.35);
+                "
+              >
+                HTML
+              </div>
+            </div>
+            <h3>Reagent Lot Verification Tool</h3>
+            <p>
+              A browser-based reagent lot verification workflow for comparing
+              old and new reagent lots, assessing QC performance, and exporting
+              verification records.
+            </p>
+            <a class="btn" href="public/tools/rgtlotverifierv1-2.html"
+              >Open tool</a
+            >
+          </article>
+
+          <article class="service-card tool-card">
+            <div class="tag-row">
+              <div class="service-tag">Template</div>
+              <div
+                class="service-tag"
+                style="
+                  background: rgba(122, 183, 255, 0.14);
+                  color: var(--accent-2);
+                  border-color: rgba(122, 183, 255, 0.35);
+                "
+              >
+                PDF / XLSX
+              </div>
+            </div>
+            <h3>QC investigation worksheet</h3>
+            <p>
+              A structured worksheet for documenting QC failures, review notes,
+              root cause, corrective action, and follow-up evidence.
+            </p>
+            <a class="btn secondary disabled" href="#" aria-disabled="true"
+              >Coming soon</a
+            >
+          </article>
+
+          <article class="service-card tool-card">
+            <div class="tag-row">
+              <div class="service-tag">Checklist</div>
+              <div
+                class="service-tag"
+                style="
+                  background: rgba(122, 183, 255, 0.14);
+                  color: var(--accent-2);
+                  border-color: rgba(122, 183, 255, 0.35);
+                "
+              >
+                PDF
+              </div>
+            </div>
+            <h3>Send-out handover checklist</h3>
+            <p>
+              A practical checklist for referral sample registration, courier
+              handover, receipt confirmation, and exception follow-up.
+            </p>
+            <a class="btn secondary disabled" href="#" aria-disabled="true"
+              >Coming soon</a
+            >
+          </article>
+
+          <article class="service-card tool-card">
+            <div class="tag-row">
+              <div class="service-tag">Calculator</div>
+              <div
+                class="service-tag"
+                style="
+                  background: rgba(122, 183, 255, 0.14);
+                  color: var(--accent-2);
+                  border-color: rgba(122, 183, 255, 0.35);
+                "
+              >
+                XLSX
+              </div>
+            </div>
+            <h3>Reagent reorder calculator</h3>
+            <p>
+              A lightweight planning sheet for reorder points, minimum stock,
+              expiry risk, and recent consumption patterns.
+            </p>
+            <a class="btn secondary disabled" href="#" aria-disabled="true"
+              >Coming soon</a
+            >
+          </article>
+        </div>
+      </section>
+
+      <section class="publish-note">
+        <h2>Publishing a new tool</h2>
+        <p>
+          Add the downloadable file to
+          <strong style="color: var(--text)">public/tools/</strong>, then update
+          the matching card with its title, description, format, and download
+          path.
+        </p>
+      </section>
+    </main>
+
+    <footer>
+      <div class="inner">
+        <a class="brand" href="index.html" style="color: var(--muted)">
+          <img class="brand-logo" src="public/labsight_logo.svg" alt="LabSight logo" />
+          <span>LabSight</span>
+        </a>
+        <span>Built for modern diagnostic and research labs.</span>
+      </div>
+    </footer>
+  </body>
+</html>
