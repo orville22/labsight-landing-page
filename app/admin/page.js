@@ -28,15 +28,20 @@ function articleToDraft(article) {
   };
 }
 
+function confirmAdminAction(message) {
+  return window.confirm(message);
+}
+
 export default function AdminPage() {
   const starterDrafts = useMemo(() => articles.map(articleToDraft), []);
   const [drafts, setDrafts] = useState(starterDrafts);
   const [selectedSlug, setSelectedSlug] = useState(starterDrafts[0].slug);
   const [message, setMessage] = useState('Loading article database...');
   const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  const selectedDraft = drafts.find((draft) => draft.slug === selectedSlug) || drafts[0];
-  const bodyParagraphs = selectedDraft.body
+  const selectedDraft = drafts.find((draft) => draft.slug === selectedSlug) || drafts[0] || null;
+  const bodyParagraphs = (selectedDraft?.body || '')
     .split(/\n{2,}/)
     .map((paragraph) => paragraph.trim())
     .filter(Boolean);
@@ -52,10 +57,10 @@ export default function AdminPage() {
           throw new Error(data.message || 'Unable to load articles');
         }
         const loadedDrafts = (data.articles || []).map(articleToDraft);
-        if (!isMounted || !loadedDrafts.length) return;
+        if (!isMounted) return;
         setDrafts(loadedDrafts);
-        setSelectedSlug(loadedDrafts[0].slug);
-        setMessage(data.fallback ? 'Using local placeholder articles; Supabase is not ready yet' : 'Loaded from Supabase');
+        setSelectedSlug(loadedDrafts[0]?.slug || '');
+        setMessage(data.fallback ? 'Using local placeholder articles; Supabase is not ready yet' : loadedDrafts.length ? 'Loaded from Supabase' : 'No articles in Supabase yet');
       } catch (error) {
         if (!isMounted) return;
         setMessage(`Using local placeholder articles: ${error.message}`);
@@ -70,6 +75,8 @@ export default function AdminPage() {
   }, []);
 
   function updateDraft(field, value) {
+    if (!selectedDraft) return;
+
     const previousSlug = selectedDraft.slug;
 
     setDrafts((currentDrafts) =>
@@ -83,19 +90,18 @@ export default function AdminPage() {
     setMessage('Unsaved changes');
   }
 
-  async function saveDraft(event) {
-    event.preventDefault();
+  async function persistDraft(draftToSave, successMessage) {
     setIsSaving(true);
-    const method = selectedDraft.persisted ? 'PATCH' : 'POST';
-    const url = selectedDraft.persisted
-      ? `/api/admin/articles/${encodeURIComponent(selectedDraft.originalSlug || selectedDraft.slug)}`
+    const method = draftToSave.persisted ? 'PATCH' : 'POST';
+    const url = draftToSave.persisted
+      ? `/api/admin/articles/${encodeURIComponent(draftToSave.originalSlug || draftToSave.slug)}`
       : '/api/admin/articles';
 
     try {
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(selectedDraft),
+        body: JSON.stringify(draftToSave),
       });
       const data = await response.json();
       if (!response.ok) {
@@ -104,32 +110,53 @@ export default function AdminPage() {
 
       const savedDraft = articleToDraft(data.article);
       setDrafts((currentDrafts) => {
-        const exists = currentDrafts.some((draft) => draft.slug === selectedDraft.slug || draft.originalSlug === selectedDraft.originalSlug);
+        const exists = currentDrafts.some((draft) => draft.slug === draftToSave.slug || draft.originalSlug === draftToSave.originalSlug);
         if (!exists) return [savedDraft, ...currentDrafts];
         return currentDrafts.map((draft) =>
-          draft.slug === selectedDraft.slug || draft.originalSlug === selectedDraft.originalSlug ? savedDraft : draft
+          draft.slug === draftToSave.slug || draft.originalSlug === draftToSave.originalSlug ? savedDraft : draft
         );
       });
       setSelectedSlug(savedDraft.slug);
-      setMessage('Saved to Supabase');
+      setMessage(successMessage);
+      return savedDraft;
     } catch (error) {
       setMessage(`Save failed: ${error.message}`);
+      return null;
     } finally {
       setIsSaving(false);
     }
   }
 
-  async function publishPreview() {
-    const readyDraft = { ...selectedDraft, status: 'Published' };
+  async function saveDraft(event) {
+    event.preventDefault();
+    if (!selectedDraft) return;
+
+    const action = selectedDraft.persisted ? 'Update' : 'Create';
+    const confirmed = confirmAdminAction(`${action} "${selectedDraft.title}" in Supabase?`);
+    if (!confirmed) return;
+
+    await persistDraft(selectedDraft, 'Saved to Supabase');
+  }
+
+  async function publishArticle() {
+    if (!selectedDraft) return;
+
+    const confirmed = confirmAdminAction(`Publish "${selectedDraft.title}" to the website?`);
+    if (!confirmed) return;
+
+    const publishedDraft = { ...selectedDraft, status: 'Published' };
     setDrafts((currentDrafts) =>
       currentDrafts.map((draft) =>
-        draft.slug === selectedDraft.slug ? readyDraft : draft
+        draft.slug === selectedDraft.slug ? publishedDraft : draft
       )
     );
-    setMessage('Marked published; use Update Draft to persist');
+    await persistDraft(publishedDraft, 'Published to website');
   }
 
   function createDraft() {
+    const confirmed = confirmAdminAction('Create a new local article draft in the admin queue?');
+    if (!confirmed) return;
+
     const nextNumber = drafts.length + 1;
     const newDraft = {
       title: `Untitled LabSight Article ${nextNumber}`,
@@ -150,11 +177,17 @@ export default function AdminPage() {
   }
 
   async function deleteDraft() {
-    if (drafts.length === 1) {
-      setMessage('Keep at least one draft in the preview');
+    if (!selectedDraft) {
+      setMessage('No article selected');
       return;
     }
 
+    const confirmed = confirmAdminAction(`Delete "${selectedDraft.title}"? This cannot be undone.`);
+    if (!confirmed) {
+      return;
+    }
+
+    setIsDeleting(true);
     try {
       if (selectedDraft.persisted) {
         const response = await fetch(`/api/admin/articles/${encodeURIComponent(selectedDraft.originalSlug || selectedDraft.slug)}`, {
@@ -166,12 +199,17 @@ export default function AdminPage() {
         }
       }
 
-      const remainingDrafts = drafts.filter((draft) => draft.slug !== selectedDraft.slug);
+      const remainingDrafts = drafts.filter((draft) =>
+        draft.slug !== selectedDraft.slug &&
+        (!selectedDraft.originalSlug || draft.originalSlug !== selectedDraft.originalSlug)
+      );
       setDrafts(remainingDrafts);
-      setSelectedSlug(remainingDrafts[0].slug);
-      setMessage('Draft deleted');
+      setSelectedSlug(remainingDrafts[0]?.slug || '');
+      setMessage('Article deleted');
     } catch (error) {
       setMessage(`Delete failed: ${error.message}`);
+    } finally {
+      setIsDeleting(false);
     }
   }
 
@@ -241,7 +279,7 @@ export default function AdminPage() {
                 <p>Read/select a draft to edit it. Saved records persist in Supabase.</p>
                 {drafts.map((draft) => (
                   <button
-                    className={draft.slug === selectedDraft.slug ? 'selected' : ''}
+                    className={draft.slug === selectedDraft?.slug ? 'selected' : ''}
                     type="button"
                     key={draft.slug}
                     onClick={() => {
@@ -256,6 +294,17 @@ export default function AdminPage() {
               </aside>
 
               <div className="admin-editor-column">
+                {!selectedDraft ? (
+                  <div className="admin-empty-state">
+                    <p className="panel-label">No article selected</p>
+                    <h3>Create your first article</h3>
+                    <p>
+                      Supabase has no saved articles yet. Create a new draft to start publishing.
+                    </p>
+                    <button className="btn" type="button" onClick={createDraft}>New Draft</button>
+                  </div>
+                ) : (
+                <>
                 <form className="admin-editor-form" onSubmit={saveDraft}>
                   <div className="field-grid two-column">
                     <label>
@@ -337,14 +386,14 @@ export default function AdminPage() {
                   </label>
 
                   <div className="admin-form-actions">
-                    <button className="btn" type="submit" disabled={isSaving}>
+                    <button className="btn" type="submit" disabled={isSaving || isDeleting}>
                       {isSaving ? 'Saving...' : 'Update Draft'}
                     </button>
-                    <button className="btn secondary" type="button" onClick={publishPreview}>
-                      Mark Ready
+                    <button className="btn secondary" type="button" onClick={publishArticle} disabled={isSaving || isDeleting}>
+                      Publish to Website
                     </button>
-                    <button className="btn danger" type="button" onClick={deleteDraft}>
-                      Delete Draft
+                    <button className="btn danger" type="button" onClick={deleteDraft} disabled={isSaving || isDeleting}>
+                      {isDeleting ? 'Deleting...' : 'Delete Article'}
                     </button>
                     <a className="text-link" href={`/blog/${selectedDraft.slug}`}>Open public article →</a>
                   </div>
@@ -365,6 +414,8 @@ export default function AdminPage() {
                     </div>
                   </article>
                 </aside>
+                </>
+                )}
               </div>
             </div>
           </section>

@@ -4,13 +4,9 @@ import { getArticle, listArticles } from '../../../lib/supabaseRest';
 
 export const dynamic = 'force-dynamic';
 
-export function generateStaticParams() {
-  return articles.map((article) => ({ slug: article.slug }));
-}
-
 async function getVisibleArticle(slug) {
   try {
-    return (await getArticle(slug, { publicOnly: true })) || getArticleBySlug(slug);
+    return (await getArticle(slug, { publicOnly: false })) || getArticleBySlug(slug);
   } catch {
     return getArticleBySlug(slug);
   }
@@ -18,7 +14,7 @@ async function getVisibleArticle(slug) {
 
 async function getVisibleArticles() {
   try {
-    const dbArticles = await listArticles({ publicOnly: true });
+    const dbArticles = await listArticles({ publicOnly: false });
     return dbArticles.length ? dbArticles : articles;
   } catch {
     return articles;

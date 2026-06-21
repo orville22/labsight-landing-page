@@ -11,7 +11,7 @@ export const metadata = {
 
 async function getVisibleArticles() {
   try {
-    const dbArticles = await listArticles({ publicOnly: true });
+    const dbArticles = await listArticles({ publicOnly: false });
     return dbArticles.length ? dbArticles : articles;
   } catch {
     return articles;

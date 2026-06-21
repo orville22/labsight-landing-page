@@ -1051,6 +1051,35 @@ main {
   resize: vertical;
 }
 
+.admin-empty-state {
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: #f8fbfc;
+  padding: 28px;
+  display: grid;
+  gap: 12px;
+  align-content: start;
+}
+
+.admin-empty-state h3,
+.admin-empty-state p {
+  margin: 0;
+}
+
+.admin-empty-state h3 {
+  color: var(--ink);
+  font-size: 24px;
+}
+
+.admin-empty-state p:not(.panel-label) {
+  color: var(--muted);
+  max-width: 560px;
+}
+
+.admin-empty-state .btn {
+  width: fit-content;
+}
+
 .admin-form-actions {
   grid-template-columns: auto auto auto minmax(0, 1fr);
   align-items: center;

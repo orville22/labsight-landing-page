@@ -2,10 +2,12 @@ import { NextResponse } from 'next/server';
 import { createArticle, listArticles } from '../../../../lib/supabaseRest';
 import { articles } from '../../../blog/articles';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     const dbArticles = await listArticles();
-    return NextResponse.json({ articles: dbArticles.length ? dbArticles : articles });
+    return NextResponse.json({ articles: dbArticles });
   } catch (error) {
     return NextResponse.json({
       articles,
