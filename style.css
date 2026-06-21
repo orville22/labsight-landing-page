@@ -38,13 +38,133 @@ body {
   font-family: "Manrope", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+body::before {
+  z-index: 0;
+  opacity: 0.72;
+  background-image:
+    url("data:image/svg+xml,%3Csvg width='220' height='220' viewBox='0 0 220 220' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%230f766e' stroke-opacity='.20' stroke-width='1.4'%3E%3Cpath d='M34 34h16v16H34z'/%3E%3Cpath d='M158 40l12 12-12 12-12-12z'/%3E%3Cpath d='M72 156h26v14H72z'/%3E%3Cpath d='M166 164h20v20h-20z'/%3E%3Cpath d='M28 172l18 0 0 18'/%3E%3Cpath d='M112 86l24 0 0 24'/%3E%3C/g%3E%3Cg fill='%231d4ed8' fill-opacity='.11'%3E%3Cpath d='M102 30h8v8h-8z'/%3E%3Cpath d='M188 92h7v7h-7z'/%3E%3Cpath d='M44 106h7v7h-7z'/%3E%3C/g%3E%3C/svg%3E");
+  background-position: 0 0;
+  background-size: 220px 220px;
+  animation: geometry-drift 28s linear infinite;
+}
+
+body::after {
+  z-index: 0;
+  opacity: 0.4;
+  background:
+    linear-gradient(115deg, transparent 0 48%, rgba(15, 118, 110, 0.08) 48% 48.35%, transparent 48.35% 100%),
+    linear-gradient(25deg, transparent 0 58%, rgba(29, 78, 216, 0.07) 58% 58.32%, transparent 58.32% 100%);
+  background-size: 520px 520px, 440px 440px;
+  animation: geometry-shift 42s linear infinite;
+}
+
 a {
   color: inherit;
   text-decoration: none;
 }
 
 .site-shell {
+  position: relative;
+  z-index: 1;
   min-height: 100vh;
+}
+
+header,
+main,
+footer {
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes geometry-drift {
+  from {
+    background-position: 0 0;
+  }
+
+  to {
+    background-position: 220px 220px;
+  }
+}
+
+@keyframes geometry-shift {
+  from {
+    background-position: 0 0, 0 0;
+  }
+
+  to {
+    background-position: 520px 260px, -440px 220px;
+  }
+}
+
+.reveal-on-scroll {
+  opacity: 0;
+  transform: translate3d(0, 28px, 0) scale(0.985);
+  transition:
+    opacity 720ms ease,
+    transform 720ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    filter 720ms ease;
+  transition-delay: calc(var(--reveal-index, 0) * 70ms);
+  filter: blur(4px);
+  will-change: opacity, transform, filter;
+}
+
+.reveal-on-scroll.is-visible {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+  filter: blur(0);
+}
+
+.reveal-on-scroll:is(.section, .blog-hero, .admin-hero, .download-hero) h1,
+.reveal-on-scroll:is(.section, .blog-hero, .admin-hero, .download-hero) h2,
+.reveal-on-scroll:is(.hero-copy) h1 {
+  animation: none;
+  background: linear-gradient(90deg, var(--ink), #0f766e, var(--ink));
+  background-size: 180% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.reveal-on-scroll.is-visible:is(.section, .blog-hero, .admin-hero, .download-hero) h1,
+.reveal-on-scroll.is-visible:is(.section, .blog-hero, .admin-hero, .download-hero) h2,
+.reveal-on-scroll.is-visible:is(.hero-copy) h1 {
+  animation: type-sheen 1100ms ease both;
+}
+
+@keyframes type-sheen {
+  from {
+    background-position: 100% 0;
+  }
+
+  to {
+    background-position: 0 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.001ms !important;
+  }
+
+  .reveal-on-scroll {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
 }
 
 .site-header {

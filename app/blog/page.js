@@ -1,7 +1,7 @@
 import { articles, topics } from './articles';
+import { listArticles } from '../../lib/supabaseRest';
 
-const featuredArticle = articles[0];
-const otherArticles = articles.slice(1);
+export const dynamic = 'force-dynamic';
 
 export const metadata = {
   title: 'Education Blog | LabSight',
@@ -9,7 +9,20 @@ export const metadata = {
     'Practical laboratory QC guides, explainers, and educational resources from LabSight.',
 };
 
-export default function BlogPage() {
+async function getVisibleArticles() {
+  try {
+    const dbArticles = await listArticles({ publicOnly: true });
+    return dbArticles.length ? dbArticles : articles;
+  } catch {
+    return articles;
+  }
+}
+
+export default async function BlogPage() {
+  const visibleArticles = await getVisibleArticles();
+  const featuredArticle = visibleArticles[0];
+  const otherArticles = visibleArticles.slice(1);
+
   return (
     <div className="site-shell">
       <header className="site-header">

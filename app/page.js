@@ -285,10 +285,11 @@ export default function Page() {
                 build next.
               </p>
             </div>
-            <form className="waitlist-form" action="mailto:hello@labsight.io?subject=LabOps%20Waitlist" method="post" encType="text/plain">
+            <form className="waitlist-form" action="/api/waitlist" method="post">
               <label htmlFor="work-email">Work email address</label>
               <div>
                 <input id="work-email" name="work-email" type="email" placeholder="scientist@lab.org" required />
+                <input name="source" type="hidden" value="labops_waitlist" />
                 <button className="btn" type="submit">Request Early Access</button>
               </div>
               <p>No commitment. No spam. Just a heads-up when LabOps is ready for your lab.</p>

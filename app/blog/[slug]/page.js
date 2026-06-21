@@ -1,12 +1,32 @@
 import { notFound } from 'next/navigation';
 import { articles, getArticleBySlug } from '../articles';
+import { getArticle, listArticles } from '../../../lib/supabaseRest';
+
+export const dynamic = 'force-dynamic';
 
 export function generateStaticParams() {
   return articles.map((article) => ({ slug: article.slug }));
 }
 
-export function generateMetadata({ params }) {
-  const article = getArticleBySlug(params.slug);
+async function getVisibleArticle(slug) {
+  try {
+    return (await getArticle(slug, { publicOnly: true })) || getArticleBySlug(slug);
+  } catch {
+    return getArticleBySlug(slug);
+  }
+}
+
+async function getVisibleArticles() {
+  try {
+    const dbArticles = await listArticles({ publicOnly: true });
+    return dbArticles.length ? dbArticles : articles;
+  } catch {
+    return articles;
+  }
+}
+
+export async function generateMetadata({ params }) {
+  const article = await getVisibleArticle(params.slug);
 
   if (!article) {
     return {
@@ -20,14 +40,15 @@ export function generateMetadata({ params }) {
   };
 }
 
-export default function ArticlePage({ params }) {
-  const article = getArticleBySlug(params.slug);
+export default async function ArticlePage({ params }) {
+  const article = await getVisibleArticle(params.slug);
 
   if (!article) {
     notFound();
   }
 
-  const otherArticles = articles.filter((item) => item.slug !== article.slug);
+  const visibleArticles = await getVisibleArticles();
+  const otherArticles = visibleArticles.filter((item) => item.slug !== article.slug);
 
   return (
     <div className="site-shell">

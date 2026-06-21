@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { articles } from '../blog/articles';
 
 const moduleLinks = [
@@ -13,15 +13,18 @@ const moduleLinks = [
 
 function articleToDraft(article) {
   return {
+    id: article.id,
     title: article.title,
     slug: article.slug,
+    originalSlug: article.slug,
     category: article.category,
     status: article.status,
     time: article.time,
-    author: 'LabSight Editorial',
+    author: article.author || 'LabSight Editorial',
     summary: article.summary,
-    tags: article.category,
-    body: article.body.join('\n\n'),
+    tags: article.tags || article.category,
+    body: Array.isArray(article.body) ? article.body.join('\n\n') : article.body,
+    persisted: Boolean(article.id),
   };
 }
 
@@ -29,13 +32,42 @@ export default function AdminPage() {
   const starterDrafts = useMemo(() => articles.map(articleToDraft), []);
   const [drafts, setDrafts] = useState(starterDrafts);
   const [selectedSlug, setSelectedSlug] = useState(starterDrafts[0].slug);
-  const [message, setMessage] = useState('Draft loaded');
+  const [message, setMessage] = useState('Loading article database...');
+  const [isSaving, setIsSaving] = useState(false);
 
   const selectedDraft = drafts.find((draft) => draft.slug === selectedSlug) || drafts[0];
   const bodyParagraphs = selectedDraft.body
     .split(/\n{2,}/)
     .map((paragraph) => paragraph.trim())
     .filter(Boolean);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadArticles() {
+      try {
+        const response = await fetch('/api/admin/articles', { cache: 'no-store' });
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.message || 'Unable to load articles');
+        }
+        const loadedDrafts = (data.articles || []).map(articleToDraft);
+        if (!isMounted || !loadedDrafts.length) return;
+        setDrafts(loadedDrafts);
+        setSelectedSlug(loadedDrafts[0].slug);
+        setMessage(data.fallback ? 'Using local placeholder articles; Supabase is not ready yet' : 'Loaded from Supabase');
+      } catch (error) {
+        if (!isMounted) return;
+        setMessage(`Using local placeholder articles: ${error.message}`);
+      }
+    }
+
+    loadArticles();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   function updateDraft(field, value) {
     const previousSlug = selectedDraft.slug;
@@ -51,18 +83,50 @@ export default function AdminPage() {
     setMessage('Unsaved changes');
   }
 
-  function saveDraft(event) {
+  async function saveDraft(event) {
     event.preventDefault();
-    setMessage('Draft saved in this admin preview');
+    setIsSaving(true);
+    const method = selectedDraft.persisted ? 'PATCH' : 'POST';
+    const url = selectedDraft.persisted
+      ? `/api/admin/articles/${encodeURIComponent(selectedDraft.originalSlug || selectedDraft.slug)}`
+      : '/api/admin/articles';
+
+    try {
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(selectedDraft),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || 'Unable to save article');
+      }
+
+      const savedDraft = articleToDraft(data.article);
+      setDrafts((currentDrafts) => {
+        const exists = currentDrafts.some((draft) => draft.slug === selectedDraft.slug || draft.originalSlug === selectedDraft.originalSlug);
+        if (!exists) return [savedDraft, ...currentDrafts];
+        return currentDrafts.map((draft) =>
+          draft.slug === selectedDraft.slug || draft.originalSlug === selectedDraft.originalSlug ? savedDraft : draft
+        );
+      });
+      setSelectedSlug(savedDraft.slug);
+      setMessage('Saved to Supabase');
+    } catch (error) {
+      setMessage(`Save failed: ${error.message}`);
+    } finally {
+      setIsSaving(false);
+    }
   }
 
-  function publishPreview() {
+  async function publishPreview() {
+    const readyDraft = { ...selectedDraft, status: 'Published' };
     setDrafts((currentDrafts) =>
       currentDrafts.map((draft) =>
-        draft.slug === selectedDraft.slug ? { ...draft, status: 'Ready to publish' } : draft
+        draft.slug === selectedDraft.slug ? readyDraft : draft
       )
     );
-    setMessage('Marked ready to publish');
+    setMessage('Marked published; use Update Draft to persist');
   }
 
   function createDraft() {
@@ -77,6 +141,7 @@ export default function AdminPage() {
       summary: 'Short working summary for the article.',
       tags: 'Editorial',
       body: 'This is not a real article yet; this placeholder marks a new admin-created draft.\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Integer vitae nibh id mauris facilisis volutpat.',
+      persisted: false,
     };
 
     setDrafts((currentDrafts) => [newDraft, ...currentDrafts]);
@@ -84,16 +149,30 @@ export default function AdminPage() {
     setMessage('New draft created');
   }
 
-  function deleteDraft() {
+  async function deleteDraft() {
     if (drafts.length === 1) {
       setMessage('Keep at least one draft in the preview');
       return;
     }
 
-    const remainingDrafts = drafts.filter((draft) => draft.slug !== selectedDraft.slug);
-    setDrafts(remainingDrafts);
-    setSelectedSlug(remainingDrafts[0].slug);
-    setMessage('Draft deleted');
+    try {
+      if (selectedDraft.persisted) {
+        const response = await fetch(`/api/admin/articles/${encodeURIComponent(selectedDraft.originalSlug || selectedDraft.slug)}`, {
+          method: 'DELETE',
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.message || 'Unable to delete article');
+        }
+      }
+
+      const remainingDrafts = drafts.filter((draft) => draft.slug !== selectedDraft.slug);
+      setDrafts(remainingDrafts);
+      setSelectedSlug(remainingDrafts[0].slug);
+      setMessage('Draft deleted');
+    } catch (error) {
+      setMessage(`Delete failed: ${error.message}`);
+    }
   }
 
   return (
@@ -159,7 +238,7 @@ export default function AdminPage() {
             <div className="admin-workspace">
               <aside className="admin-draft-list" aria-label="Article drafts">
                 <h3>Article queue</h3>
-                <p>Read/select a draft to edit it.</p>
+                <p>Read/select a draft to edit it. Saved records persist in Supabase.</p>
                 {drafts.map((draft) => (
                   <button
                     className={draft.slug === selectedDraft.slug ? 'selected' : ''}
@@ -258,7 +337,9 @@ export default function AdminPage() {
                   </label>
 
                   <div className="admin-form-actions">
-                    <button className="btn" type="submit">Update Draft</button>
+                    <button className="btn" type="submit" disabled={isSaving}>
+                      {isSaving ? 'Saving...' : 'Update Draft'}
+                    </button>
                     <button className="btn secondary" type="button" onClick={publishPreview}>
                       Mark Ready
                     </button>

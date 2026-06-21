@@ -1,5 +1,6 @@
 import "./globals.css";
 import { Space_Grotesk, Manrope } from "next/font/google";
+import ScrollReveal from "./ScrollReveal";
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
@@ -22,7 +23,10 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${spaceGrotesk.variable} ${manrope.variable}`}>
-      <body>{children}</body>
+      <body>
+        <ScrollReveal />
+        {children}
+      </body>
     </html>
   );
 }
